@@ -3,6 +3,7 @@ Pagina Principal:
 	-Up/Down por segunda vez: selecciona el movimiento de arriba/abajo si lo hubiese.
 	-Supr (mientras se selecciona una fila con up/down): pregunta si se desea eliminar el movimiento.
 	-ctrl+n: abre la pestaña de nuevo movimiento.
+	-ctrl+z: volver a agregar el ultimo movimiento eliminado.
 	-F1: abre la sección de ayuda.
 Cualquier modal:
 	-Esc: sale del modal.
@@ -11,5 +12,5 @@ Cualquier modal:
 	-Tab: permite moverse entre los elementos del modal en orden por defecto.
 Agregar Movimiento:
 	-left/right (si esta seleccionando el tipo): cambia el tipo entre ingreso y gasto.
-	Sección de ayuda:
-	-F1: pasa al siguiente paso (o sale de la seccion de ayuda si es el ultimo).
+Sección de ayuda:
+	-F1: pasa al siguiente paso (o sale de la sección de ayuda si es el ultimo).
