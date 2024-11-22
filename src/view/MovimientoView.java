@@ -9,8 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 import model.Movimiento;
 import controller.MovimientoController;
+import observer.BalanceObserver;
 
-public class MovimientoView extends JFrame {
+public class MovimientoView extends JFrame implements BalanceObserver {
 
     private JPanel movementsPanel;
     private JLabel balanceLabel;
@@ -31,6 +32,16 @@ public class MovimientoView extends JFrame {
 
     private boolean inHelpMode = false;
     private int currentHelpStep = 0;
+
+    @Override
+    public void onBalanceChange(double balance) {
+         balanceLabel.setText(String.format("%.2f", balance));
+        if (balance < 0) {
+            bannerPanel.setBackground(Color.decode("#d63429"));
+        } else {
+            bannerPanel.setBackground(Color.decode("#123EAF"));
+        }
+    }
 
     private static class ArrowPosition {
 
