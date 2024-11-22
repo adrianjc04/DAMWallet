@@ -1,0 +1,736 @@
+package view;
+
+import javax.swing.*;
+import javax.swing.border.Border;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
+import model.Movimiento;
+import controller.MovimientoController;
+
+public class MovimientoView extends JFrame {
+
+    private JPanel movementsPanel;
+    private JLabel balanceLabel;
+    private JLabel recentTransactionsLabel;
+    private JLabel helpTextLabel1;
+    private JLabel helpTextLabel2;
+    private JLabel arrowLabel;
+    private JButton addButton;
+    private JButton helpButton;
+    private JButton continueButton;
+    private JPanel headerPanel;
+    private JPanel bannerPanel;
+    private JPanel filtersPanel;
+    private JLabel mesLabel;
+    private JLabel añoLabel;
+    private JLabel totalLabel;
+    private JPanel centerPanel;
+
+    private boolean inHelpMode = false;
+    private int currentHelpStep = 0;
+
+    private static class ArrowPosition {
+
+        int x;
+        int y;
+
+        ArrowPosition(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+    }
+
+    private ArrowPosition[] arrowPositions;
+    private ActionListener continueButtonListener;
+
+    private MovimientoController controller;
+
+    private int selectedMovementIndex = -1;
+    private List<MovimientoPanel> movimientoPanels = new ArrayList<>();
+
+    public void setController(MovimientoController controller) {
+        this.controller = controller;
+    }
+
+    public MovimientoView() {
+        setTitle("DAMWallet");
+        setSize(800, 600);
+        setMinimumSize(new Dimension(370, 667));
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        initComponents();
+
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                if (inHelpMode) {
+                    recalculateArrowPositions();
+                    showArrowAtStep(currentHelpStep);
+                }
+            }
+        });
+    }
+
+    private void initComponents() {
+        setLayout(new BorderLayout());
+
+        // Deshabilitar las teclas de navegación de foco predeterminadas
+        setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, Collections.emptySet());
+        setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, Collections.emptySet());
+
+        headerPanel = new JPanel();
+        headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
+
+        bannerPanel = new JPanel();
+        bannerPanel.setLayout(new BoxLayout(bannerPanel, BoxLayout.Y_AXIS));
+
+        Color bannerColor = Color.decode("#123EAF");
+        bannerPanel.setBackground(bannerColor);
+
+        JLabel titleLabel = new JLabel("Balance Total", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        balanceLabel = new JLabel("0.00", SwingConstants.CENTER);
+        balanceLabel.setFont(new Font("Arial", Font.PLAIN, 20));
+        balanceLabel.setForeground(Color.WHITE);
+        balanceLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        bannerPanel.add(Box.createVerticalStrut(10));
+        bannerPanel.add(titleLabel);
+        bannerPanel.add(balanceLabel);
+        bannerPanel.add(Box.createVerticalStrut(10));
+
+        filtersPanel = new JPanel();
+        filtersPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 0));
+        filtersPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        filtersPanel.setBackground(bannerColor);
+
+        mesLabel = new JLabel("MES");
+        añoLabel = new JLabel("AÑO");
+        totalLabel = new JLabel("TOTAL");
+
+        Font filterFont = new Font("Arial", Font.BOLD, 14);
+        mesLabel.setFont(filterFont);
+        añoLabel.setFont(filterFont);
+        totalLabel.setFont(filterFont);
+
+        mesLabel.setForeground(Color.WHITE);
+        añoLabel.setForeground(Color.WHITE);
+        totalLabel.setForeground(Color.WHITE);
+
+        mesLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        añoLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        totalLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        filtersPanel.add(mesLabel);
+        filtersPanel.add(añoLabel);
+        filtersPanel.add(totalLabel);
+
+        highlightSelectedFilter(totalLabel, mesLabel, añoLabel);
+
+        headerPanel.add(bannerPanel);
+        headerPanel.add(filtersPanel);
+
+        add(headerPanel, BorderLayout.NORTH);
+
+        recentTransactionsLabel = new JLabel("Transacciones recientes", SwingConstants.CENTER);
+        recentTransactionsLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        recentTransactionsLabel.setForeground(Color.decode("#4898F6"));
+        recentTransactionsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        helpTextLabel1 = new JLabel("", SwingConstants.CENTER);
+        helpTextLabel1.setFont(new Font("Arial", Font.PLAIN, 14));
+        helpTextLabel1.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        helpTextLabel2 = new JLabel("", SwingConstants.CENTER);
+        helpTextLabel2.setFont(new Font("Arial", Font.PLAIN, 14));
+        helpTextLabel2.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        ImageIcon arrowIcon = new ImageIcon("imgs/arrow_icon_right.png");
+        Image arrowImg = arrowIcon.getImage();
+        Image scaledArrowImg = arrowImg.getScaledInstance(54, 54, Image.SCALE_SMOOTH);
+        arrowIcon = new ImageIcon(scaledArrowImg);
+
+        arrowLabel = new JLabel(arrowIcon);
+        arrowLabel.setVisible(false);
+
+        movementsPanel = new JPanel();
+        movementsPanel.setLayout(new BoxLayout(movementsPanel, BoxLayout.Y_AXIS));
+        movementsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        centerPanel = new JPanel();
+        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
+        centerPanel.add(recentTransactionsLabel);
+        centerPanel.add(Box.createVerticalStrut(10));
+        centerPanel.add(helpTextLabel1);
+        centerPanel.add(helpTextLabel2);
+        centerPanel.add(Box.createVerticalStrut(10));
+        centerPanel.add(movementsPanel);
+        centerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        centerPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JScrollPane scrollPane = new JScrollPane(centerPanel);
+        scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+
+        add(scrollPane, BorderLayout.CENTER);
+
+        JPanel buttonPanel = new JPanel(new BorderLayout());
+
+        JPanel leftButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+
+        ImageIcon helpIcon = new ImageIcon("imgs/question_mark_icon.png");
+        Image helpImg = helpIcon.getImage();
+        Image scaledHelpImg = helpImg.getScaledInstance(54, 54, Image.SCALE_SMOOTH);
+        helpIcon = new ImageIcon(scaledHelpImg);
+
+        helpButton = new JButton(helpIcon);
+        helpButton.setPreferredSize(new Dimension(54, 54));
+        helpButton.setContentAreaFilled(false);
+        helpButton.setBorderPainted(false);
+        helpButton.setFocusPainted(false);
+        helpButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        leftButtonPanel.add(helpButton);
+
+        JPanel rightButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+
+        ImageIcon addIcon = new ImageIcon("imgs/icono_añadir.png");
+        Image img = addIcon.getImage();
+        Image scaledImg = img.getScaledInstance(54, 54, Image.SCALE_SMOOTH);
+        addIcon = new ImageIcon(scaledImg);
+
+        addButton = new JButton(addIcon);
+        addButton.setPreferredSize(new Dimension(54, 54));
+        addButton.setContentAreaFilled(false);
+        addButton.setBorderPainted(false);
+        addButton.setFocusPainted(false);
+        addButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        rightButtonPanel.add(addButton);
+
+        buttonPanel.add(leftButtonPanel, BorderLayout.WEST);
+        buttonPanel.add(rightButtonPanel, BorderLayout.EAST);
+
+        add(buttonPanel, BorderLayout.SOUTH);
+
+        // Configurar Key Binding para F1, Tab, Ctrl+N, Ctrl+Z, Flechas y Supr
+        setupKeyBindings();
+    }
+
+    private void setupKeyBindings() {
+        // Mapear la tecla F1 a la acción "showHelp"
+        InputMap inputMap = this.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap actionMap = this.getRootPane().getActionMap();
+
+        inputMap.put(KeyStroke.getKeyStroke("F1"), "showHelp");
+        actionMap.put("showHelp", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (controller != null) {
+                    controller.triggerHelp();
+                }
+            }
+        });
+
+        // Mapear la tecla Tab a la acción "cycleFilter"
+        inputMap.put(KeyStroke.getKeyStroke("pressed TAB"), "cycleFilter");
+        actionMap.put("cycleFilter", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!inHelpMode && controller != null) {
+                    controller.cycleFilter();
+                }
+            }
+        });
+
+        // Mapear Ctrl+N a la acción "addMovimiento"
+        inputMap.put(KeyStroke.getKeyStroke("ctrl N"), "addMovimiento");
+        actionMap.put("addMovimiento", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!inHelpMode && controller != null) {
+                    controller.addMovimiento();
+                }
+            }
+        });
+
+        // Mapear Ctrl+Z a la acción "undoDeleteMovimiento"
+        inputMap.put(KeyStroke.getKeyStroke("ctrl Z"), "undoDeleteMovimiento");
+        actionMap.put("undoDeleteMovimiento", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!inHelpMode && controller != null) {
+                    controller.undoDeleteMovimiento();
+                }
+            }
+        });
+
+        // Mapear Flecha Arriba a la acción "moveSelectionUp"
+        inputMap.put(KeyStroke.getKeyStroke("UP"), "moveSelectionUp");
+        actionMap.put("moveSelectionUp", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!inHelpMode) {
+                    moveSelectionUp();
+                }
+            }
+        });
+
+        // Mapear Flecha Abajo a la acción "moveSelectionDown"
+        inputMap.put(KeyStroke.getKeyStroke("DOWN"), "moveSelectionDown");
+        actionMap.put("moveSelectionDown", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!inHelpMode) {
+                    moveSelectionDown();
+                }
+            }
+        });
+
+        // Mapear Supr a la acción "deleteSelectedMovement"
+        inputMap.put(KeyStroke.getKeyStroke("DELETE"), "deleteSelectedMovement");
+        actionMap.put("deleteSelectedMovement", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!inHelpMode) {
+                    deleteSelectedMovement();
+                }
+            }
+        });
+    }
+
+    private void moveSelectionUp() {
+        if (movimientoPanels.isEmpty()) {
+            return;
+        }
+        if (selectedMovementIndex == -1) {
+            // No hay selección, selecciona el primero
+            selectedMovementIndex = 0;
+        } else if (selectedMovementIndex > 0) {
+            selectedMovementIndex--;
+        }
+        updateMovementSelection();
+    }
+
+    private void moveSelectionDown() {
+        if (movimientoPanels.isEmpty()) {
+            return;
+        }
+        if (selectedMovementIndex == -1) {
+            // No hay selección, selecciona el primero
+            selectedMovementIndex = 0;
+        } else if (selectedMovementIndex < movimientoPanels.size() - 1) {
+            selectedMovementIndex++;
+        }
+        updateMovementSelection();
+    }
+
+    private void updateMovementSelection() {
+        for (int i = 0; i < movimientoPanels.size(); i++) {
+            MovimientoPanel panel = movimientoPanels.get(i);
+            if (i == selectedMovementIndex) {
+                panel.setSelected(true);
+                // Asegurar que el panel seleccionado sea visible
+                panel.scrollRectToVisible(panel.getBounds());
+            } else {
+                panel.setSelected(false);
+            }
+        }
+    }
+
+    private void deleteSelectedMovement() {
+        if (selectedMovementIndex >= 0 && selectedMovementIndex < movimientoPanels.size()) {
+            MovimientoPanel selectedPanel = movimientoPanels.get(selectedMovementIndex);
+            // Activar la acción de eliminar
+            selectedPanel.getDeleteButton().doClick();
+        }
+    }
+
+    public void setBalance(double balance) {
+        balanceLabel.setText(String.format("%.2f", balance));
+    }
+
+    public void setMovements(Movimiento[] movimientos) {
+        movementsPanel.removeAll();
+        movimientoPanels.clear();
+        selectedMovementIndex = -1;
+
+        for (Movimiento movimiento : movimientos) {
+            MovimientoPanel movimientoPanel = new MovimientoPanel(movimiento);
+
+            movimientoPanel.getDeleteButton().addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    int option = showConfirmDialog("¿Estás seguro de que deseas eliminar este movimiento?");
+                    if (option == JOptionPane.YES_OPTION) {
+                        if (controller != null) {
+                            controller.deleteMovimiento(movimientoPanel.getMovimientoId());
+                        }
+                    }
+                }
+            });
+
+            movementsPanel.add(movimientoPanel);
+            movimientoPanels.add(movimientoPanel);
+        }
+
+        movementsPanel.revalidate();
+        movementsPanel.repaint();
+    }
+
+    private int showConfirmDialog(String message) {
+        // Personalizar el diálogo para manejar Enter y Escape
+        Object[] options = {"Sí", "No"};
+        JOptionPane pane = new JOptionPane(message, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_OPTION, null, options, options[0]);
+        JDialog dialog = pane.createDialog(this, "Confirmar eliminación");
+
+        // Agregar Key Bindings al diálogo
+        dialog.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "confirm");
+        dialog.getRootPane().getActionMap().put("confirm", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                pane.setValue(options[0]); // Sí
+                dialog.dispose();
+            }
+        });
+
+        dialog.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancel");
+        dialog.getRootPane().getActionMap().put("cancel", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                pane.setValue(options[1]); // No
+                dialog.dispose();
+            }
+        });
+
+        dialog.setVisible(true);
+        Object selectedValue = pane.getValue();
+        if (selectedValue == options[0]) {
+            return JOptionPane.YES_OPTION;
+        } else {
+            return JOptionPane.NO_OPTION;
+        }
+    }
+
+    private class MovimientoPanel extends JPanel {
+
+        private long movimientoId;
+        private JButton deleteButton;
+        private Color hoverBackgroundColor = Color.decode("#89bced");
+        private Color hoverBorderColor = Color.decode("#183cac");
+        private Color defaultBackgroundColor;
+        private Border defaultBorder;
+        private boolean isSelected = false;
+
+        public MovimientoPanel(Movimiento movimiento) {
+            this.movimientoId = movimiento.getId();
+            setLayout(new BorderLayout());
+            setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+            setOpaque(true); // Hacer el panel opaco para que se vea el fondo
+
+            // Guardar los valores por defecto
+            defaultBackgroundColor = getBackground();
+            defaultBorder = getBorder();
+
+            deleteButton = new JButton("x");
+            deleteButton.setVisible(false);
+            deleteButton.setPreferredSize(new Dimension(45, 45)); // Mantener el tamaño solicitado
+            deleteButton.setFont(new Font("Arial", Font.PLAIN, 16));
+            deleteButton.setContentAreaFilled(false);
+            deleteButton.setBorderPainted(false);
+            deleteButton.setFocusPainted(false);
+            deleteButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+            add(deleteButton, BorderLayout.WEST);
+
+            JPanel centroPanel = new JPanel();
+            centroPanel.setLayout(new BoxLayout(centroPanel, BoxLayout.Y_AXIS));
+            centroPanel.setOpaque(false); // Mantener transparente
+
+            JLabel conceptoLabel = new JLabel(movimiento.getConcepto());
+            conceptoLabel.setFont(new Font("Arial", Font.BOLD, 16));
+            conceptoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            JLabel fechaLabel = new JLabel(movimiento.getFecha().toString());
+            fechaLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+            fechaLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            centroPanel.add(conceptoLabel);
+            centroPanel.add(fechaLabel);
+
+            JLabel cantidadLabel = new JLabel(String.format("%.2f", movimiento.getCantidad()));
+            cantidadLabel.setFont(new Font("Arial", Font.BOLD, 16));
+
+            add(centroPanel, BorderLayout.CENTER);
+            add(cantidadLabel, BorderLayout.EAST);
+
+            int maxWidth = 500;
+            setMaximumSize(new Dimension(maxWidth, getPreferredSize().height));
+            setAlignmentX(Component.CENTER_ALIGNMENT);
+
+            // MouseAdapter para manejar eventos del ratón
+            MouseAdapter mouseAdapter = new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    if (!isSelected) {
+                        deleteButton.setVisible(true);
+                        setBackground(hoverBackgroundColor);
+                        setBorder(BorderFactory.createLineBorder(hoverBorderColor, 2));
+                    }
+                }
+
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    if (!isSelected) {
+                        deleteButton.setVisible(false);
+                        setBackground(defaultBackgroundColor);
+                        setBorder(defaultBorder);
+                    }
+                }
+            };
+
+            // Agregar el MouseAdapter a los componentes necesarios
+            addMouseListener(mouseAdapter);
+            centroPanel.addMouseListener(mouseAdapter);
+            conceptoLabel.addMouseListener(mouseAdapter);
+            fechaLabel.addMouseListener(mouseAdapter);
+            cantidadLabel.addMouseListener(mouseAdapter);
+            deleteButton.addMouseListener(mouseAdapter);
+        }
+
+        public long getMovimientoId() {
+            return movimientoId;
+        }
+
+        public JButton getDeleteButton() {
+            return deleteButton;
+        }
+
+        public void setSelected(boolean selected) {
+            this.isSelected = selected;
+            if (selected) {
+                deleteButton.setVisible(true);
+                setBackground(hoverBackgroundColor);
+                setBorder(BorderFactory.createLineBorder(hoverBorderColor, 2));
+            } else {
+                deleteButton.setVisible(false);
+                setBackground(defaultBackgroundColor);
+                setBorder(defaultBorder);
+            }
+        }
+    }
+
+    public void highlightSelectedFilter(JLabel selectedLabel, JLabel... otherLabels) {
+        selectedLabel.setText("<html><u>" + selectedLabel.getText() + "</u></html>");
+        for (JLabel label : otherLabels) {
+            label.setText(label.getText().replace("<html><u>", "").replace("</u></html>", ""));
+        }
+    }
+
+    public void addAddButtonListener(ActionListener listener) {
+        addButton.addActionListener(listener);
+    }
+
+    public void addHelpButtonListener(ActionListener listener) {
+        helpButton.addActionListener(listener);
+    }
+
+    public void addContinueButtonListener(ActionListener listener) {
+        this.continueButtonListener = listener;
+        if (continueButton != null) {
+            continueButton.addActionListener(continueButtonListener);
+        }
+    }
+
+    public void addFilterLabelListener(MouseListener mesListener, MouseListener añoListener, MouseListener totalListener) {
+        mesLabel.addMouseListener(mesListener);
+        añoLabel.addMouseListener(añoListener);
+        totalLabel.addMouseListener(totalListener);
+    }
+
+    public JLabel getMesLabel() {
+        return mesLabel;
+    }
+
+    public JLabel getAñoLabel() {
+        return añoLabel;
+    }
+
+    public JLabel getTotalLabel() {
+        return totalLabel;
+    }
+
+    public void setHelpStep(int step) {
+        this.currentHelpStep = step;
+    }
+
+    public void enterHelpMode() {
+        inHelpMode = true;
+        currentHelpStep = 1;
+
+        movementsPanel.setVisible(false);
+        addButton.setEnabled(false);
+        helpButton.setVisible(false);
+        mesLabel.setEnabled(false);
+        añoLabel.setEnabled(false);
+        totalLabel.setEnabled(false);
+
+        recentTransactionsLabel.setText("Guía");
+
+        continueButton = new JButton("Continuar...");
+        continueButton.setFont(new Font("Arial", Font.BOLD, 18));
+        continueButton.setForeground(Color.decode("#4898F6"));
+        continueButton.setContentAreaFilled(false);
+        continueButton.setBorderPainted(false);
+        continueButton.setFocusPainted(false);
+        continueButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        if (continueButtonListener != null) {
+            continueButton.addActionListener(continueButtonListener);
+        }
+
+        JPanel leftButtonPanel = (JPanel) ((BorderLayout) ((JPanel) getContentPane().getComponent(2)).getLayout())
+                .getLayoutComponent(BorderLayout.WEST);
+        leftButtonPanel.removeAll();
+        leftButtonPanel.add(continueButton);
+        leftButtonPanel.revalidate();
+        leftButtonPanel.repaint();
+
+        helpTextLabel1.setText("");
+        helpTextLabel2.setText("");
+
+        arrowPositions = new ArrowPosition[4];
+
+        if (arrowLabel.getParent() != getLayeredPane()) {
+            getLayeredPane().add(arrowLabel, JLayeredPane.POPUP_LAYER);
+        }
+        arrowLabel.setVisible(true);
+
+        recalculateArrowPositions();
+        showArrowAtStep(currentHelpStep);
+    }
+
+    private void recalculateArrowPositions() {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                Point frameLocation = getLocationOnScreen();
+
+                int arrowWidth = arrowLabel.getIcon().getIconWidth();
+                int arrowHeight = arrowLabel.getIcon().getIconHeight();
+
+                Point balanceLocation = balanceLabel.getLocationOnScreen();
+                int x1 = balanceLocation.x - frameLocation.x - arrowWidth - 10;
+                int y1 = balanceLocation.y - frameLocation.y + (balanceLabel.getHeight() - arrowHeight) / 2 - 30;
+
+                Point mesLocation = mesLabel.getLocationOnScreen();
+                int x2 = mesLocation.x - frameLocation.x - arrowWidth - 10;
+                int y2 = mesLocation.y - frameLocation.y + (mesLabel.getHeight() - arrowHeight) / 2 - 30;
+
+                Point añoLocation = añoLabel.getLocationOnScreen();
+                int x3 = añoLocation.x - frameLocation.x - arrowWidth - 10;
+                int y3 = añoLocation.y - frameLocation.y + (añoLabel.getHeight() - arrowHeight) / 2 - 30;
+
+                Point addButtonLocation = addButton.getLocationOnScreen();
+                int x4 = addButtonLocation.x - frameLocation.x - arrowWidth - 10;
+                int y4 = addButtonLocation.y - frameLocation.y + (addButton.getHeight() - arrowHeight) / 2 - 30;
+
+                arrowPositions[0] = new ArrowPosition(x1, y1);
+                arrowPositions[1] = new ArrowPosition(x2, y2);
+                arrowPositions[2] = new ArrowPosition(x3, y3);
+                arrowPositions[3] = new ArrowPosition(x4, y4);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public void updateHelpText(String text1, String text2) {
+        helpTextLabel1.setText(text1);
+        helpTextLabel2.setText(text2);
+    }
+
+    public void showArrowAtStep(int step) {
+        SwingUtilities.invokeLater(() -> {
+            int index = step - 1;
+            if (index >= 0 && index < arrowPositions.length) {
+                ArrowPosition pos = arrowPositions[index];
+                if (pos != null) {
+                    arrowLabel.setBounds(pos.x, pos.y, arrowLabel.getIcon().getIconWidth(),
+                            arrowLabel.getIcon().getIconHeight());
+                    arrowLabel.repaint();
+                }
+            }
+        });
+    }
+
+    public void exitHelpMode() {
+        inHelpMode = false;
+        currentHelpStep = 0;
+
+        if (continueButton != null && continueButtonListener != null) {
+            continueButton.removeActionListener(continueButtonListener);
+        }
+
+        movementsPanel.setVisible(true);
+        addButton.setEnabled(true);
+        helpButton.setVisible(true);
+        mesLabel.setEnabled(true);
+        añoLabel.setEnabled(true);
+        totalLabel.setEnabled(true);
+
+        recentTransactionsLabel.setText("Transacciones recientes");
+
+        helpTextLabel1.setText("");
+        helpTextLabel2.setText("");
+
+        arrowLabel.setVisible(false);
+        getLayeredPane().remove(arrowLabel);
+
+        JPanel leftButtonPanel = (JPanel) ((BorderLayout) ((JPanel) getContentPane().getComponent(2)).getLayout())
+                .getLayoutComponent(BorderLayout.WEST);
+        leftButtonPanel.removeAll();
+        leftButtonPanel.add(helpButton);
+        leftButtonPanel.revalidate();
+        leftButtonPanel.repaint();
+    }
+
+    // Métodos para agregar Key Bindings desde el controlador
+    public void addHelpKeyBinding(Action action) {
+        InputMap inputMap = this.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap actionMap = this.getRootPane().getActionMap();
+
+        inputMap.put(KeyStroke.getKeyStroke("F1"), "showHelp");
+        actionMap.put("showHelp", action);
+    }
+
+    public void addTabKeyBinding(Action action) {
+        InputMap inputMap = this.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap actionMap = this.getRootPane().getActionMap();
+
+        inputMap.put(KeyStroke.getKeyStroke("pressed TAB"), "cycleFilter");
+        actionMap.put("cycleFilter", action);
+    }
+
+    public void addCtrlNKeyBinding(Action action) {
+        InputMap inputMap = this.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap actionMap = this.getRootPane().getActionMap();
+
+        inputMap.put(KeyStroke.getKeyStroke("ctrl N"), "addMovimiento");
+        actionMap.put("addMovimiento", action);
+    }
+
+    public void addCtrlZKeyBinding(Action action) {
+        InputMap inputMap = this.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap actionMap = this.getRootPane().getActionMap();
+
+        inputMap.put(KeyStroke.getKeyStroke("ctrl Z"), "undoDeleteMovimiento");
+        actionMap.put("undoDeleteMovimiento", action);
+    }
+}
