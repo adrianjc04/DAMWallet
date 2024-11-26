@@ -29,6 +29,7 @@ public class MovimientoView extends JFrame implements BalanceObserver {
     private JLabel añoLabel;
     private JLabel totalLabel;
     private JPanel centerPanel;
+    private JScrollPane scrollPane; // Declarar scrollPane como variable de instancia
 
     private boolean inHelpMode = false;
     private int currentHelpStep = 0;
@@ -187,7 +188,7 @@ public class MovimientoView extends JFrame implements BalanceObserver {
         centerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         centerPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JScrollPane scrollPane = new JScrollPane(centerPanel);
+        scrollPane = new JScrollPane(centerPanel); // Inicializar scrollPane como variable de instancia
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
@@ -324,7 +325,7 @@ public class MovimientoView extends JFrame implements BalanceObserver {
         }
         if (selectedMovementIndex == -1) {
             // No hay selección, selecciona el primero
-            selectedMovementIndex = 0;
+            selectedMovementIndex = movimientoPanels.size() - 1;
         } else if (selectedMovementIndex > 0) {
             selectedMovementIndex--;
         }
@@ -344,13 +345,40 @@ public class MovimientoView extends JFrame implements BalanceObserver {
         updateMovementSelection();
     }
 
+    private void scrollToPanel(MovimientoPanel panel) {
+        SwingUtilities.invokeLater(() -> {
+            Rectangle rect = panel.getBounds();
+            Point panelLocation = SwingUtilities.convertPoint(panel.getParent(), rect.getLocation(), scrollPane.getViewport().getView());
+
+            // Obtener la posición Y del panel en relación al viewport
+            int panelY = panelLocation.y;
+
+            // Calcular la altura del header y otros componentes sobre el panel
+            int headerHeight = headerPanel.getHeight() + recentTransactionsLabel.getHeight() + 20; // Ajusta el valor 20 según sea necesario
+
+            // Obtener el rectángulo visible del viewport
+            Rectangle viewRect = scrollPane.getViewport().getViewRect();
+
+            if (panelY < viewRect.y + headerHeight) {
+                // Si el panel está oculto debajo del header, ajustar la posición
+                int newY = panelY - headerHeight;
+                if (newY < 0) newY = 0;
+                scrollPane.getViewport().setViewPosition(new Point(0, newY));
+            } else if (panelY + panel.getHeight() > viewRect.y + viewRect.height) {
+                // Si el panel está fuera de la parte inferior del viewport
+                int newY = panelY + panel.getHeight() - viewRect.height;
+                scrollPane.getViewport().setViewPosition(new Point(0, newY));
+            }
+        });
+    }
+    
     private void updateMovementSelection() {
         for (int i = 0; i < movimientoPanels.size(); i++) {
             MovimientoPanel panel = movimientoPanels.get(i);
             if (i == selectedMovementIndex) {
                 panel.setSelected(true);
                 // Asegurar que el panel seleccionado sea visible
-                panel.scrollRectToVisible(panel.getBounds());
+                scrollToPanel(panel);
             } else {
                 panel.setSelected(false);
             }
