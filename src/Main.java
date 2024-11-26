@@ -1,3 +1,4 @@
+
 import javax.swing.*;
 import controller.MovimientoController;
 import model.MovimientoDAO;
@@ -5,6 +6,7 @@ import observer.BalanceObserver;
 import view.MovimientoView;
 
 public class Main {
+
     public static void main(String[] args) {
         // Crear la base de datos si no existe
         if (!MovimientoDAO.crearBaseDeDatos()) {
@@ -16,8 +18,10 @@ public class Main {
         SwingUtilities.invokeLater(() -> {
             MovimientoView view = new MovimientoView();
             MovimientoController controller = new MovimientoController(view);
-            controller.addObserver((BalanceObserver) view); // Registro como observador
+
+            controller.addObserver(view); // Registrar la vista como observadora
             view.setVisible(true);
         });
+
     }
 }

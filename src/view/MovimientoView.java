@@ -35,11 +35,13 @@ public class MovimientoView extends JFrame implements BalanceObserver {
 
     @Override
     public void onBalanceChange(double balance) {
-         balanceLabel.setText(String.format("%.2f", balance));
+        balanceLabel.setText(String.format("%.2f", balance));
         if (balance < 0) {
-            bannerPanel.setBackground(Color.decode("#d63429"));
+            bannerPanel.setBackground(Color.decode("#d63429")); // Rojo
+            filtersPanel.setBackground(Color.decode("#d63429")); // Rojo
         } else {
-            bannerPanel.setBackground(Color.decode("#123EAF"));
+            bannerPanel.setBackground(Color.decode("#123EAF")); // Azul original
+            filtersPanel.setBackground(Color.decode("#123EAF")); // Azul original
         }
     }
 
@@ -744,4 +746,11 @@ public class MovimientoView extends JFrame implements BalanceObserver {
         inputMap.put(KeyStroke.getKeyStroke("ctrl Z"), "undoDeleteMovimiento");
         actionMap.put("undoDeleteMovimiento", action);
     }
+
+    public void updateBannerAndFiltersColor(String colorHex) {
+        Color color = Color.decode(colorHex);
+        bannerPanel.setBackground(color);
+        filtersPanel.setBackground(color);
+    }
+
 }
