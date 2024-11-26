@@ -9,8 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 import model.Movimiento;
 import controller.MovimientoController;
+import observer.BalanceObserver;
 
-public class MovimientoView extends JFrame {
+public class MovimientoView extends JFrame implements BalanceObserver {
 
     private JPanel movementsPanel;
     private JLabel balanceLabel;
@@ -28,9 +29,22 @@ public class MovimientoView extends JFrame {
     private JLabel añoLabel;
     private JLabel totalLabel;
     private JPanel centerPanel;
+    private JScrollPane scrollPane; // Declarar scrollPane como variable de instancia
 
     private boolean inHelpMode = false;
     private int currentHelpStep = 0;
+
+    @Override
+    public void onBalanceChange(double balance) {
+        balanceLabel.setText(String.format("%.2f", balance));
+        if (balance < 0) {
+            bannerPanel.setBackground(Color.decode("#d63429")); // Rojo
+            filtersPanel.setBackground(Color.decode("#d63429")); // Rojo
+        } else {
+            bannerPanel.setBackground(Color.decode("#123EAF")); // Azul original
+            filtersPanel.setBackground(Color.decode("#123EAF")); // Azul original
+        }
+    }
 
     private static class ArrowPosition {
 
@@ -174,7 +188,7 @@ public class MovimientoView extends JFrame {
         centerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         centerPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JScrollPane scrollPane = new JScrollPane(centerPanel);
+        scrollPane = new JScrollPane(centerPanel); // Inicializar scrollPane como variable de instancia
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
@@ -311,7 +325,7 @@ public class MovimientoView extends JFrame {
         }
         if (selectedMovementIndex == -1) {
             // No hay selección, selecciona el primero
-            selectedMovementIndex = 0;
+            selectedMovementIndex = movimientoPanels.size() - 1;
         } else if (selectedMovementIndex > 0) {
             selectedMovementIndex--;
         }
@@ -331,13 +345,40 @@ public class MovimientoView extends JFrame {
         updateMovementSelection();
     }
 
+    private void scrollToPanel(MovimientoPanel panel) {
+        SwingUtilities.invokeLater(() -> {
+            Rectangle rect = panel.getBounds();
+            Point panelLocation = SwingUtilities.convertPoint(panel.getParent(), rect.getLocation(), scrollPane.getViewport().getView());
+
+            // Obtener la posición Y del panel en relación al viewport
+            int panelY = panelLocation.y;
+
+            // Calcular la altura del header y otros componentes sobre el panel
+            int headerHeight = headerPanel.getHeight() + recentTransactionsLabel.getHeight() + 20; // Ajusta el valor 20 según sea necesario
+
+            // Obtener el rectángulo visible del viewport
+            Rectangle viewRect = scrollPane.getViewport().getViewRect();
+
+            if (panelY < viewRect.y + headerHeight) {
+                // Si el panel está oculto debajo del header, ajustar la posición
+                int newY = panelY - headerHeight;
+                if (newY < 0) newY = 0;
+                scrollPane.getViewport().setViewPosition(new Point(0, newY));
+            } else if (panelY + panel.getHeight() > viewRect.y + viewRect.height) {
+                // Si el panel está fuera de la parte inferior del viewport
+                int newY = panelY + panel.getHeight() - viewRect.height;
+                scrollPane.getViewport().setViewPosition(new Point(0, newY));
+            }
+        });
+    }
+    
     private void updateMovementSelection() {
         for (int i = 0; i < movimientoPanels.size(); i++) {
             MovimientoPanel panel = movimientoPanels.get(i);
             if (i == selectedMovementIndex) {
                 panel.setSelected(true);
                 // Asegurar que el panel seleccionado sea visible
-                panel.scrollRectToVisible(panel.getBounds());
+                scrollToPanel(panel);
             } else {
                 panel.setSelected(false);
             }
@@ -733,4 +774,11 @@ public class MovimientoView extends JFrame {
         inputMap.put(KeyStroke.getKeyStroke("ctrl Z"), "undoDeleteMovimiento");
         actionMap.put("undoDeleteMovimiento", action);
     }
+
+    public void updateBannerAndFiltersColor(String colorHex) {
+        Color color = Color.decode(colorHex);
+        bannerPanel.setBackground(color);
+        filtersPanel.setBackground(color);
+    }
+
 }

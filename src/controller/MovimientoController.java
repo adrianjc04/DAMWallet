@@ -10,15 +10,18 @@ import java.util.Stack;
 import javax.swing.*;
 import model.Movimiento;
 import model.MovimientoDAO;
+import observer.BalanceObserver;
 import view.MovimientoView;
 
 public class MovimientoController {
+
     private MovimientoView view;
     private String currentFilter = "Total";
     private boolean inHelpMode = false;
     private int helpStep = 0;
 
     private Stack<Movimiento> deletedMovimientos = new Stack<>();
+    private List<BalanceObserver> observers = new ArrayList<>();
 
     public MovimientoController(MovimientoView view) {
         this.view = view;
@@ -29,19 +32,42 @@ public class MovimientoController {
         this.view.addFilterLabelListener(new MesLabelListener(), new AñoLabelListener(), new TotalLabelListener());
         this.view.addContinueButtonListener(new ContinueButtonListener());
 
-        // Agregar Key Binding para F1 en la vista
+        // Agregar Key Bindings
         this.view.addHelpKeyBinding(new HelpKeyAction());
-
-        // Agregar Key Binding para Tab en la vista
         this.view.addTabKeyBinding(new TabKeyAction());
-
-        // Agregar Key Binding para Ctrl+N en la vista
         this.view.addCtrlNKeyBinding(new CtrlNKeyAction());
-
-        // Agregar Key Binding para Ctrl+Z en la vista
         this.view.addCtrlZKeyBinding(new CtrlZKeyAction());
 
-        loadData();
+        loadData(); // Carga inicial de datos
+
+        // Forzar notificación del balance al iniciar
+        double initialBalance = calculateTotalBalance();
+        notifyBalanceChange(initialBalance);
+    }
+
+    private double calculateTotalBalance() {
+        String selectQuery = "SELECT * FROM MOVIMIENTO";
+        Movimiento[] movimientos = MovimientoDAO.leerMovimientos(selectQuery);
+
+        double totalBalance = 0.0;
+        for (Movimiento movimiento : movimientos) {
+            totalBalance += movimiento.getCantidad();
+        }
+        return totalBalance;
+    }
+
+    public void addObserver(BalanceObserver observer) {
+        observers.add(observer); // Añadir un observador
+    }
+
+    public void removeObserver(BalanceObserver observer) {
+        observers.remove(observer); // Eliminar un observador
+    }
+
+    private void notifyBalanceChange(double balance) {
+        for (BalanceObserver observer : observers) {
+            observer.onBalanceChange(balance); // Notificar a cada observador del cambio
+        }
     }
 
     private void loadData() {
@@ -57,7 +83,6 @@ public class MovimientoController {
             case "Año":
                 selectQuery += " WHERE FECHA >= (strftime('%s', 'now', '-365 days') * 1000)";
                 break;
-            case "Total":
             default:
                 break;
         }
@@ -70,7 +95,16 @@ public class MovimientoController {
             totalBalance += movimiento.getCantidad();
         }
 
+        notifyBalanceChange(totalBalance);
         view.setBalance(totalBalance);
+
+        // Cambiar color del banner y filtros si el balance es negativo
+        if (totalBalance < 0) {
+            view.updateBannerAndFiltersColor("#d63429"); // Rojo
+        } else {
+            view.updateBannerAndFiltersColor("#123EAF"); // Azul original
+        }
+
         view.setMovements(movimientos);
     }
 
@@ -199,9 +233,9 @@ public class MovimientoController {
 
         // Crear un JOptionPane personalizado
         JOptionPane optionPane = new JOptionPane(
-            panel,
-            JOptionPane.PLAIN_MESSAGE,
-            JOptionPane.OK_CANCEL_OPTION
+                panel,
+                JOptionPane.PLAIN_MESSAGE,
+                JOptionPane.OK_CANCEL_OPTION
         );
 
         // Convertir JOptionPane a JDialog para mayor control
@@ -358,6 +392,7 @@ public class MovimientoController {
     }
 
     private class AddButtonListener implements ActionListener {
+
         @Override
         public void actionPerformed(ActionEvent e) {
             if (!inHelpMode) {
@@ -367,6 +402,7 @@ public class MovimientoController {
     }
 
     private class HelpButtonListener implements ActionListener {
+
         @Override
         public void actionPerformed(ActionEvent e) {
             startHelp();
@@ -375,6 +411,7 @@ public class MovimientoController {
 
     // Acción para la tecla F1
     private class HelpKeyAction extends AbstractAction {
+
         @Override
         public void actionPerformed(ActionEvent e) {
             if (inHelpMode) {
@@ -389,6 +426,7 @@ public class MovimientoController {
 
     // Acción para la tecla Tab
     private class TabKeyAction extends AbstractAction {
+
         @Override
         public void actionPerformed(ActionEvent e) {
             cycleFilter();
@@ -397,6 +435,7 @@ public class MovimientoController {
 
     // Acción para la combinación Ctrl+N
     private class CtrlNKeyAction extends AbstractAction {
+
         @Override
         public void actionPerformed(ActionEvent e) {
             if (!inHelpMode) {
@@ -407,6 +446,7 @@ public class MovimientoController {
 
     // Acción para la combinación Ctrl+Z
     private class CtrlZKeyAction extends AbstractAction {
+
         @Override
         public void actionPerformed(ActionEvent e) {
             if (!inHelpMode) {
@@ -428,6 +468,7 @@ public class MovimientoController {
     }
 
     private class ContinueButtonListener implements ActionListener {
+
         @Override
         public void actionPerformed(ActionEvent e) {
             nextHelpStep();
@@ -488,6 +529,7 @@ public class MovimientoController {
     }
 
     private class MesLabelListener extends MouseAdapter {
+
         @Override
         public void mouseClicked(MouseEvent e) {
             if (!inHelpMode) {
@@ -499,6 +541,7 @@ public class MovimientoController {
     }
 
     private class AñoLabelListener extends MouseAdapter {
+
         @Override
         public void mouseClicked(MouseEvent e) {
             if (!inHelpMode) {
@@ -510,6 +553,7 @@ public class MovimientoController {
     }
 
     private class TotalLabelListener extends MouseAdapter {
+
         @Override
         public void mouseClicked(MouseEvent e) {
             if (!inHelpMode) {
