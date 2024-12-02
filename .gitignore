@@ -1,5 +1,11 @@
 # Ignorar la carpeta build
-build/
+/build/
 
-# Ignorar la carpeta test
-test/
+# Ignorar la carpeta BasesDeDatos
+/BaseDeDatos/
+
+# Ignorar la carpeta nbproject (configuraciones de NetBeans)
+/nbproject/
+
+#Ignora el archivo build.xml
+/build.xml

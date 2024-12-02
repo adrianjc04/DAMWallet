@@ -2,7 +2,6 @@
 import javax.swing.*;
 import controller.MovimientoController;
 import model.MovimientoDAO;
-import observer.BalanceObserver;
 import view.MovimientoView;
 
 public class Main {
