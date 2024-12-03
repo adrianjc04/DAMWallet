@@ -9,3 +9,9 @@
 
 #Ignora el archivo build.xml
 /build.xml
+
+#Ignora el directorio dist
+/dist/
+
+#Ignora el directorio test
+/test/
