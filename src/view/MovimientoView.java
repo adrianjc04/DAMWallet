@@ -14,6 +14,7 @@ import observer.BalanceObserver;
 
 public class MovimientoView extends JFrame implements BalanceObserver {
 
+	private JLabel[] atajos;
 	private JPanel movementsPanel;
 	private JLabel balanceLabel;
 	private JLabel recentTransactionsLabel;
@@ -141,10 +142,9 @@ public class MovimientoView extends JFrame implements BalanceObserver {
 		mesLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		añoLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		totalLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                mesLabel.setToolTipText("Filtro mes (Alternar: Tab)");
-                añoLabel.setToolTipText("Filtro año (Alternar: Tab)");
-                totalLabel.setToolTipText("Filtro total (Alternar: Tab)");
-
+		mesLabel.setToolTipText("Filtro mes (Alternar: Tab)");
+		añoLabel.setToolTipText("Filtro año (Alternar: Tab)");
+		totalLabel.setToolTipText("Filtro total (Alternar: Tab)");
 
 		filtersPanel.add(mesLabel);
 		filtersPanel.add(añoLabel);
@@ -214,7 +214,7 @@ public class MovimientoView extends JFrame implements BalanceObserver {
 		helpButton.setBorderPainted(false);
 		helpButton.setFocusPainted(false);
 		helpButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                helpButton.setToolTipText("Ayuda (F1)");
+		helpButton.setToolTipText("Ayuda (F1)");
 
 		leftButtonPanel.add(helpButton);
 
@@ -231,7 +231,7 @@ public class MovimientoView extends JFrame implements BalanceObserver {
 		addButton.setBorderPainted(false);
 		addButton.setFocusPainted(false);
 		addButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                addButton.setToolTipText("Nuevo Movimiento (ctrl + n)");
+		addButton.setToolTipText("Nuevo Movimiento (ctrl + n)");
 
 		rightButtonPanel.add(addButton);
 
@@ -561,7 +561,7 @@ public class MovimientoView extends JFrame implements BalanceObserver {
 			defaultBorder = getBorder();
 
 			deleteButton = new JButton("x");
-                        deleteButton.setToolTipText("Eliminar (Spr)");
+			deleteButton.setToolTipText("Eliminar (Spr)");
 			deleteButton.setVisible(false);
 			deleteButton.setPreferredSize(new Dimension(45, 45)); // Mantener el tamaño solicitado
 			deleteButton.setFont(new Font("Arial", Font.PLAIN, 16));
@@ -774,9 +774,20 @@ public class MovimientoView extends JFrame implements BalanceObserver {
 		});
 	}
 
-	public void updateHelpText(String text1, String text2) {
+	public void updateHelpText(String text1, String text2, String... otrosTextos) {
 		helpTextLabel1.setText(text1);
 		helpTextLabel2.setText(text2);
+		atajos = new JLabel[otrosTextos.length];
+		for (int i = 0; i < atajos.length; i++) {
+			atajos[i] = new JLabel(otrosTextos[i], SwingConstants.CENTER);
+			if (otrosTextos[i].matches("[0-9].*")) {
+				atajos[i].setFont(new Font("Arial", Font.BOLD, 14));
+			} else {
+				atajos[i].setFont(new Font("Arial", Font.PLAIN, 14));
+			}
+			atajos[i].setAlignmentX(Component.CENTER_ALIGNMENT);
+			centerPanel.add(atajos[i]);
+		}
 	}
 
 	public void showArrowAtStep(int step) {
@@ -863,4 +874,13 @@ public class MovimientoView extends JFrame implements BalanceObserver {
 		filtersPanel.setBackground(color);
 	}
 
+	public JLabel getArrowLabel() {
+		return arrowLabel;
+	}
+
+	public void limpiarAtajos() {
+		for (int i = 0; i < atajos.length; i++) {
+			centerPanel.remove(atajos[i]);
+		}
+	}
 }

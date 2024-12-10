@@ -11,5 +11,5 @@ Cualquier modal:
 	-Tab: permite moverse entre los elementos del modal en orden por defecto.
 Agregar Movimiento:
 	-left/right (si esta seleccionando el tipo): cambia el tipo entre ingreso y gasto.
-	Sección de ayuda:
+Sección de ayuda:
 	-F1: pasa al siguiente paso (o sale de la seccion de ayuda si es el ultimo).

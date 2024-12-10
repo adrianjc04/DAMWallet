@@ -142,6 +142,10 @@ public class MovimientoController {
     public void cycleFilter() {
         if (!inHelpMode) {
             switch (currentFilter) {
+				case "Total":
+					currentFilter = "Mes";
+                    view.highlightSelectedFilter(view.getMesLabel(), view.getAñoLabel(), view.getTotalLabel());
+                    break;
                 case "Mes":
                     currentFilter = "Año";
                     view.highlightSelectedFilter(view.getAñoLabel(), view.getMesLabel(), view.getTotalLabel());
@@ -150,7 +154,6 @@ public class MovimientoController {
                     currentFilter = "Total";
                     view.highlightSelectedFilter(view.getTotalLabel(), view.getMesLabel(), view.getAñoLabel());
                     break;
-                case "Total":
                 default:
                     currentFilter = "Mes";
                     view.highlightSelectedFilter(view.getMesLabel(), view.getAñoLabel(), view.getTotalLabel());
@@ -499,7 +502,53 @@ public class MovimientoController {
                 view.updateHelpText(splitText[0], splitText[1]);
                 view.showArrowAtStep(helpStep);
                 break;
-            case 5:
+			case 5:
+				text = "Atajos de teclado:";
+                splitText = splitTextInHalf(text);
+                view.updateHelpText(splitText[0],
+						splitText[1],
+						"1.Pagina Principal:",
+						" ",
+						"	-Up/Down por primera vez:",
+						"	selecciona la primera fila.",
+						" ",
+						"	-Up/Down por segunda vez:",
+						"	selecciona el movimiento de",
+						"	arriba/abajo si lo hubiese.",
+						" ",
+						"	-Supr",
+						"	(mientras se selecciona una fila con up/down):",
+						"	pregunta si se desea eliminar el movimiento.",
+						" ",
+						"	-ctrl+n: abre la pestaña de nuevo movimiento.",
+						" ",
+						"	-F1: abre la sección de ayuda.",
+						" ",
+						"2.Cualquier modal:",
+						" ",
+						"	-Esc: sale del modal.",
+						" ",
+						"	-Enter: realiza la acción del proposito del",
+						"	modal si la respuesta fuese afirmativa.",
+						" ",
+						"	-up/down/left/right: permite moverse",
+						"	entre los elementos del modal.",
+						" ",
+						"	-Tab: permite moverse entre los elementos",
+						"	del modal en orden por defecto.",
+						" ",
+						"3.Agregar Movimiento:",
+						" ",
+						"	-left/right (si esta seleccionando el tipo):",
+						"	cambia el tipo entre ingreso y gasto.",
+						" ",
+						"4.Sección de ayuda:",
+						" ",
+						"	-F1: pasa al siguiente paso",
+						"	(o sale de la seccion de ayuda si es el ultimo).");
+                view.getArrowLabel().setVisible(false);
+				break;
+            case 6:
                 endHelp();
                 break;
         }
@@ -510,6 +559,7 @@ public class MovimientoController {
         helpStep = 0;
         view.setHelpStep(helpStep);
         view.exitHelpMode();
+		view.limpiarAtajos();
         loadData();
     }
 
