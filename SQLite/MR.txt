@@ -1,6 +1,0 @@
-MOVIMIENTO(id,concepto,cantidad,fecha)
-
-id NUMBER(10),
-concepto X(500),
-cantidad NUMBER(9,2),
-fecha date

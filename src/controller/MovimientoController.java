@@ -10,15 +10,18 @@ import java.util.Stack;
 import javax.swing.*;
 import model.Movimiento;
 import model.MovimientoDAO;
+import observer.BalanceObserver;
 import view.MovimientoView;
 
 public class MovimientoController {
+
     private MovimientoView view;
     private String currentFilter = "Total";
     private boolean inHelpMode = false;
     private int helpStep = 0;
 
     private Stack<Movimiento> deletedMovimientos = new Stack<>();
+    private List<BalanceObserver> observers = new ArrayList<>();
 
     public MovimientoController(MovimientoView view) {
         this.view = view;
@@ -29,19 +32,42 @@ public class MovimientoController {
         this.view.addFilterLabelListener(new MesLabelListener(), new AñoLabelListener(), new TotalLabelListener());
         this.view.addContinueButtonListener(new ContinueButtonListener());
 
-        // Agregar Key Binding para F1 en la vista
+        // Agregar Key Bindings
         this.view.addHelpKeyBinding(new HelpKeyAction());
-
-        // Agregar Key Binding para Tab en la vista
         this.view.addTabKeyBinding(new TabKeyAction());
-
-        // Agregar Key Binding para Ctrl+N en la vista
         this.view.addCtrlNKeyBinding(new CtrlNKeyAction());
-
-        // Agregar Key Binding para Ctrl+Z en la vista
         this.view.addCtrlZKeyBinding(new CtrlZKeyAction());
 
-        loadData();
+        loadData(); // Carga inicial de datos
+
+        // Forzar notificación del balance al iniciar
+        double initialBalance = calculateTotalBalance();
+        notifyBalanceChange(initialBalance);
+    }
+
+    private double calculateTotalBalance() {
+        String selectQuery = "SELECT * FROM MOVIMIENTO";
+        Movimiento[] movimientos = MovimientoDAO.leerMovimientos(selectQuery);
+
+        double totalBalance = 0.0;
+        for (Movimiento movimiento : movimientos) {
+            totalBalance += movimiento.getCantidad();
+        }
+        return totalBalance;
+    }
+
+    public void addObserver(BalanceObserver observer) {
+        observers.add(observer); // Añadir un observador
+    }
+
+    public void removeObserver(BalanceObserver observer) {
+        observers.remove(observer); // Eliminar un observador
+    }
+
+    private void notifyBalanceChange(double balance) {
+        for (BalanceObserver observer : observers) {
+            observer.onBalanceChange(balance); // Notificar a cada observador del cambio
+        }
     }
 
     private void loadData() {
@@ -57,7 +83,6 @@ public class MovimientoController {
             case "Año":
                 selectQuery += " WHERE FECHA >= (strftime('%s', 'now', '-365 days') * 1000)";
                 break;
-            case "Total":
             default:
                 break;
         }
@@ -70,7 +95,16 @@ public class MovimientoController {
             totalBalance += movimiento.getCantidad();
         }
 
+        notifyBalanceChange(totalBalance);
         view.setBalance(totalBalance);
+
+        // Cambiar color del banner y filtros si el balance es negativo
+        if (totalBalance < 0) {
+            view.updateBannerAndFiltersColor("#d63429"); // Rojo
+        } else {
+            view.updateBannerAndFiltersColor("#123EAF"); // Azul original
+        }
+
         view.setMovements(movimientos);
     }
 
@@ -108,6 +142,10 @@ public class MovimientoController {
     public void cycleFilter() {
         if (!inHelpMode) {
             switch (currentFilter) {
+				case "Total":
+					currentFilter = "Mes";
+                    view.highlightSelectedFilter(view.getMesLabel(), view.getAñoLabel(), view.getTotalLabel());
+                    break;
                 case "Mes":
                     currentFilter = "Año";
                     view.highlightSelectedFilter(view.getAñoLabel(), view.getMesLabel(), view.getTotalLabel());
@@ -116,7 +154,6 @@ public class MovimientoController {
                     currentFilter = "Total";
                     view.highlightSelectedFilter(view.getTotalLabel(), view.getMesLabel(), view.getAñoLabel());
                     break;
-                case "Total":
                 default:
                     currentFilter = "Mes";
                     view.highlightSelectedFilter(view.getMesLabel(), view.getAñoLabel(), view.getTotalLabel());
@@ -199,9 +236,9 @@ public class MovimientoController {
 
         // Crear un JOptionPane personalizado
         JOptionPane optionPane = new JOptionPane(
-            panel,
-            JOptionPane.PLAIN_MESSAGE,
-            JOptionPane.OK_CANCEL_OPTION
+                panel,
+                JOptionPane.PLAIN_MESSAGE,
+                JOptionPane.OK_CANCEL_OPTION
         );
 
         // Convertir JOptionPane a JDialog para mayor control
@@ -358,6 +395,7 @@ public class MovimientoController {
     }
 
     private class AddButtonListener implements ActionListener {
+
         @Override
         public void actionPerformed(ActionEvent e) {
             if (!inHelpMode) {
@@ -367,6 +405,7 @@ public class MovimientoController {
     }
 
     private class HelpButtonListener implements ActionListener {
+
         @Override
         public void actionPerformed(ActionEvent e) {
             startHelp();
@@ -375,6 +414,7 @@ public class MovimientoController {
 
     // Acción para la tecla F1
     private class HelpKeyAction extends AbstractAction {
+
         @Override
         public void actionPerformed(ActionEvent e) {
             if (inHelpMode) {
@@ -389,6 +429,7 @@ public class MovimientoController {
 
     // Acción para la tecla Tab
     private class TabKeyAction extends AbstractAction {
+
         @Override
         public void actionPerformed(ActionEvent e) {
             cycleFilter();
@@ -397,6 +438,7 @@ public class MovimientoController {
 
     // Acción para la combinación Ctrl+N
     private class CtrlNKeyAction extends AbstractAction {
+
         @Override
         public void actionPerformed(ActionEvent e) {
             if (!inHelpMode) {
@@ -407,6 +449,7 @@ public class MovimientoController {
 
     // Acción para la combinación Ctrl+Z
     private class CtrlZKeyAction extends AbstractAction {
+
         @Override
         public void actionPerformed(ActionEvent e) {
             if (!inHelpMode) {
@@ -428,6 +471,7 @@ public class MovimientoController {
     }
 
     private class ContinueButtonListener implements ActionListener {
+
         @Override
         public void actionPerformed(ActionEvent e) {
             nextHelpStep();
@@ -458,7 +502,53 @@ public class MovimientoController {
                 view.updateHelpText(splitText[0], splitText[1]);
                 view.showArrowAtStep(helpStep);
                 break;
-            case 5:
+			case 5:
+				text = "Atajos de teclado:";
+                splitText = splitTextInHalf(text);
+                view.updateHelpText(splitText[0],
+						splitText[1],
+						"1.Pagina Principal:",
+						" ",
+						"	-Up/Down por primera vez:",
+						"	selecciona la primera fila.",
+						" ",
+						"	-Up/Down por segunda vez:",
+						"	selecciona el movimiento de",
+						"	arriba/abajo si lo hubiese.",
+						" ",
+						"	-Supr",
+						"	(mientras se selecciona una fila con up/down):",
+						"	pregunta si se desea eliminar el movimiento.",
+						" ",
+						"	-ctrl+n: abre la pestaña de nuevo movimiento.",
+						" ",
+						"	-F1: abre la sección de ayuda.",
+						" ",
+						"2.Cualquier modal:",
+						" ",
+						"	-Esc: sale del modal.",
+						" ",
+						"	-Enter: realiza la acción del proposito del",
+						"	modal si la respuesta fuese afirmativa.",
+						" ",
+						"	-up/down/left/right: permite moverse",
+						"	entre los elementos del modal.",
+						" ",
+						"	-Tab: permite moverse entre los elementos",
+						"	del modal en orden por defecto.",
+						" ",
+						"3.Agregar Movimiento:",
+						" ",
+						"	-left/right (si esta seleccionando el tipo):",
+						"	cambia el tipo entre ingreso y gasto.",
+						" ",
+						"4.Sección de ayuda:",
+						" ",
+						"	-F1: pasa al siguiente paso",
+						"	(o sale de la seccion de ayuda si es el ultimo).");
+                view.getArrowLabel().setVisible(false);
+				break;
+            case 6:
                 endHelp();
                 break;
         }
@@ -469,6 +559,7 @@ public class MovimientoController {
         helpStep = 0;
         view.setHelpStep(helpStep);
         view.exitHelpMode();
+		view.limpiarAtajos();
         loadData();
     }
 
@@ -488,6 +579,7 @@ public class MovimientoController {
     }
 
     private class MesLabelListener extends MouseAdapter {
+
         @Override
         public void mouseClicked(MouseEvent e) {
             if (!inHelpMode) {
@@ -499,6 +591,7 @@ public class MovimientoController {
     }
 
     private class AñoLabelListener extends MouseAdapter {
+
         @Override
         public void mouseClicked(MouseEvent e) {
             if (!inHelpMode) {
@@ -510,6 +603,7 @@ public class MovimientoController {
     }
 
     private class TotalLabelListener extends MouseAdapter {
+
         @Override
         public void mouseClicked(MouseEvent e) {
             if (!inHelpMode) {
