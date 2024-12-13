@@ -6,3 +6,15 @@
 
 # Ignorar la carpeta nbproject (configuraciones de NetBeans)
 /nbproject/
+
+#Ignora el directorio dist
+/dist/
+
+#Ignora el directorio test
+/test/
+
+#Ignora el archivo manifest.mf
+/manifest.mf
+
+#Ignorar build.xml
+/build.xml
