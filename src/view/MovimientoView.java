@@ -117,6 +117,30 @@ public class MovimientoView extends JFrame implements BalanceObserver {
         balanceLabel.setForeground(Color.WHITE);
         balanceLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+		JMenuBar menuBar = new JMenuBar();
+		
+		JMenu menuArchivo = new JMenu("Archivo");
+		
+		JMenuItem mItemAbrir = new JMenuItem("Abrir");
+		JMenuItem mItemCerrar = new JMenuItem("Cerrar");
+		JMenuItem mItemExportar = new JMenuItem("Exportar");
+		
+		menuArchivo.add(mItemAbrir);
+		menuArchivo.add(mItemCerrar);
+		menuArchivo.addSeparator();
+		menuArchivo.add(mItemExportar);
+		
+		JMenu menuVer = new JMenu("Ver");
+		
+		JCheckBoxMenuItem mItemAlwaysOnTop = new JCheckBoxMenuItem("Siempre en primer plano");
+		
+		menuVer.add(mItemAlwaysOnTop);
+		
+		menuBar.add(menuArchivo);
+		menuBar.add(menuVer);
+		
+		this.setJMenuBar(menuBar);
+		
         bannerPanel.add(Box.createVerticalStrut(10));
         bannerPanel.add(titleLabel);
         bannerPanel.add(balanceLabel);
