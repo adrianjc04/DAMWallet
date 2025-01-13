@@ -13,8 +13,7 @@ import java.util.Date;
 
 public class MovimientoDAO {
 
-    public static final String NAMESPACEBBDD = "BaseDeDatos";
-    public static final String NOMBREBBDD = "Movimientos.db";
+    public static String rutaBBDD = "BaseDeDatos"+File.separator+"Movimientos.db";
     public static final String NOMBRETABLA = "MOVIMIENTO";
     public static final String CREATETABLE
             = "CREATE TABLE " + NOMBRETABLA + "("
@@ -23,12 +22,15 @@ public class MovimientoDAO {
             + "CANTIDAD REAL CHECK(CANTIDAD > -10000000 AND CANTIDAD < 10000000 AND CANTIDAD <> 0 AND (CANTIDAD * 100) = CAST(CANTIDAD * 100 AS INTEGER)),"
             + "FECHA INTEGER CHECK(FECHA >= 0)"
             + ")";
-
+    
     public static boolean crearBaseDeDatos() {
         boolean creado;
         String url;
-        new File(NAMESPACEBBDD).mkdirs();
-        url = "jdbc:sqlite:" + NAMESPACEBBDD + File.separator + NOMBREBBDD;
+        try {
+            new File(rutaBBDD).getParentFile().mkdirs();
+        } catch (NullPointerException e) {
+        }
+        url = "jdbc:sqlite:" + rutaBBDD;
         try (Connection conexion = DriverManager.getConnection(url)) {
             creado = true;
         } catch (SQLException e) {
@@ -38,19 +40,19 @@ public class MovimientoDAO {
         crearTablaMovimiento();
         return creado;
     }
-
+    
     private static void crearTablaMovimiento() {
-        String url = "jdbc:sqlite:" + NAMESPACEBBDD + File.separator + NOMBREBBDD;
+        String url = "jdbc:sqlite:" + rutaBBDD;
         try (Connection conexion = DriverManager.getConnection(url); Statement crearTabla = conexion.createStatement()) {
             crearTabla.execute(CREATETABLE);
         } catch (SQLException e) {
             System.out.println("MovimientoDAO: Error al crear la tabla, o ya existe.");
         }
     }
-
+    
     public static Movimiento[] leerMovimientos(String select) {
         ArrayList<Movimiento> movimientos = new ArrayList<>();
-        String url = "jdbc:sqlite:" + NAMESPACEBBDD + File.separator + NOMBREBBDD;
+        String url = "jdbc:sqlite:" + rutaBBDD;
         try (Connection conexion = DriverManager.getConnection(url); Statement consulta = conexion.createStatement()) {
             ResultSet query = consulta.executeQuery(select);
             while (query.next()) {
@@ -70,7 +72,7 @@ public class MovimientoDAO {
 
     public static boolean escribirMovimiento(Movimiento movimiento) {
         boolean insertado;
-        String url = "jdbc:sqlite:" + NAMESPACEBBDD + File.separator + NOMBREBBDD;
+        String url = "jdbc:sqlite:" + rutaBBDD;
         try (Connection conexion = DriverManager.getConnection(url); Statement sentenciaInsert = conexion.createStatement()) {
             String insert = "INSERT INTO " + NOMBRETABLA + "(CONCEPTO, CANTIDAD, FECHA) VALUES("
                     + "'" + movimiento.getConcepto() + "',"
@@ -86,7 +88,7 @@ public class MovimientoDAO {
 
     public static boolean borrarMovimiento(long id) {
         boolean borrado;
-        String url = "jdbc:sqlite:" + NAMESPACEBBDD + File.separator + NOMBREBBDD;
+        String url = "jdbc:sqlite:" + rutaBBDD;
         try (Connection conexion = DriverManager.getConnection(url); Statement sentenciaDelete = conexion.createStatement()) {
             String delete = "DELETE FROM " + NOMBRETABLA + " WHERE ID = " + id + ";";
             sentenciaDelete.execute(delete);
@@ -99,7 +101,7 @@ public class MovimientoDAO {
 
     public static Movimiento obtenerMovimientoPorId(long id) {
         Movimiento movimiento = null;
-        String url = "jdbc:sqlite:" + NAMESPACEBBDD + File.separator + NOMBREBBDD;
+        String url = "jdbc:sqlite:" + rutaBBDD;
         try (Connection conexion = DriverManager.getConnection(url); Statement consulta = conexion.createStatement()) {
             ResultSet query = consulta.executeQuery("SELECT * FROM MOVIMIENTO WHERE ID = " + id + ";");
             String concepto = query.getString("CONCEPTO");

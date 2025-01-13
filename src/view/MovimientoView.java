@@ -9,11 +9,18 @@ import java.util.ArrayList;
 import java.util.List;
 import model.Movimiento;
 import controller.MovimientoController;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Arrays;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import model.MovimientoDAO;
 import observer.BalanceObserver;
 
 public class MovimientoView extends JFrame implements BalanceObserver {
 
+    final String RUTA_ULTIMO_ARCHIVO = "config" + File.separator + "ultimaRuta.txt";
     private JLabel[] atajos;
     private JPanel movementsPanel;
     private JLabel balanceLabel;
@@ -117,30 +124,89 @@ public class MovimientoView extends JFrame implements BalanceObserver {
         balanceLabel.setForeground(Color.WHITE);
         balanceLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-		JMenuBar menuBar = new JMenuBar();
-		
-		JMenu menuArchivo = new JMenu("Archivo");
-		
-		JMenuItem mItemAbrir = new JMenuItem("Abrir");
-		JMenuItem mItemCerrar = new JMenuItem("Cerrar");
-		JMenuItem mItemExportar = new JMenuItem("Exportar");
-		
-		menuArchivo.add(mItemAbrir);
-		menuArchivo.add(mItemCerrar);
-		menuArchivo.addSeparator();
-		menuArchivo.add(mItemExportar);
-		
-		JMenu menuVer = new JMenu("Ver");
-		
-		JCheckBoxMenuItem mItemAlwaysOnTop = new JCheckBoxMenuItem("Siempre en primer plano");
-		
-		menuVer.add(mItemAlwaysOnTop);
-		
-		menuBar.add(menuArchivo);
-		menuBar.add(menuVer);
-		
-		this.setJMenuBar(menuBar);
-		
+        JMenuBar menuBar = new JMenuBar();
+
+        JMenu menuArchivo = new JMenu("Archivo");
+
+        JMenuItem mItemAbrir = new JMenuItem("Abrir");
+        JMenuItem mItemCerrar = new JMenuItem("Cerrar");
+        JMenuItem mItemExportar = new JMenuItem("Exportar");
+
+        mItemAbrir.addActionListener(l -> {
+            JFileChooser selector = new JFileChooser();
+            selector.setFileFilter(new FileNameExtensionFilter("Archivos de base de datos (.db)", "db"));
+            int resultado = selector.showOpenDialog(this);
+            if (resultado == JFileChooser.APPROVE_OPTION) {
+                String rutaSeleccionada = selector.getSelectedFile().getAbsolutePath();
+                File fileRutaSeleccionada = new File(rutaSeleccionada);
+                if (!fileRutaSeleccionada.isDirectory() && rutaSeleccionada != null && !rutaSeleccionada.trim().isEmpty()) {
+                    BufferedWriter archivo = null;
+                    try {
+                        archivo = new BufferedWriter(new FileWriter(RUTA_ULTIMO_ARCHIVO));
+                        archivo.write(rutaSeleccionada);
+                    } catch (IOException e) {
+                        if (archivo != null) {
+                            try {
+                                archivo.close();
+                            } catch (IOException ex) {
+                                System.out.println("Error al cerrar el archivo ");
+                            }
+                        }
+                    } finally {
+                        if (archivo != null) {
+                            try {
+                                archivo.close();
+                            } catch (IOException iOException) {
+                                System.out.println("Error al cerrar "+RUTA_ULTIMO_ARCHIVO);
+                            }
+                        }
+                    }
+                    if (!fileRutaSeleccionada.exists()) {
+                        try {
+                            fileRutaSeleccionada.getParentFile().mkdirs();
+                        } catch (NullPointerException e) {
+                        }
+                    }
+                    MovimientoDAO.rutaBBDD = rutaSeleccionada;
+                    if (MovimientoDAO.crearBaseDeDatos()) {
+                        System.out.println("Abriendo " + rutaSeleccionada);
+                        setMovements(MovimientoDAO.leerMovimientos("SELECT * FROM MOVIMIENTO;"));
+                        updateMovementSelection();
+                    } else {
+                        System.out.println("Error al abrir " + rutaSeleccionada);
+                    }
+                }
+            }
+        });
+
+        mItemCerrar.addActionListener(l -> {
+            System.exit(0);
+        });
+
+        menuArchivo.add(mItemAbrir);
+        menuArchivo.add(mItemCerrar);
+        menuArchivo.addSeparator();
+        menuArchivo.add(mItemExportar);
+
+        JMenu menuVer = new JMenu("Ver");
+
+        JCheckBoxMenuItem mItemAlwaysOnTop = new JCheckBoxMenuItem("Siempre en primer plano");
+
+        mItemAlwaysOnTop.addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                this.setAlwaysOnTop(true);
+            } else if (e.getStateChange() == ItemEvent.DESELECTED) {
+                this.setAlwaysOnTop(false);
+            }
+        });
+
+        menuVer.add(mItemAlwaysOnTop);
+
+        menuBar.add(menuArchivo);
+        menuBar.add(menuVer);
+
+        this.setJMenuBar(menuBar);
+
         bannerPanel.add(Box.createVerticalStrut(10));
         bannerPanel.add(titleLabel);
         bannerPanel.add(balanceLabel);
