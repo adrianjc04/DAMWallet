@@ -142,8 +142,8 @@ public class MovimientoController {
     public void cycleFilter() {
         if (!inHelpMode) {
             switch (currentFilter) {
-				case "Total":
-					currentFilter = "Mes";
+                case "Total":
+                    currentFilter = "Mes";
                     view.highlightSelectedFilter(view.getMesLabel(), view.getAñoLabel(), view.getTotalLabel());
                     break;
                 case "Mes":
@@ -346,7 +346,7 @@ public class MovimientoController {
         if (selectedValue != null && selectedValue instanceof Integer) {
             option = (Integer) selectedValue;
         }
-
+        Movimiento movimiento = null;
         if (option == JOptionPane.OK_OPTION) {
             try {
                 String concepto = conceptoField.getText().trim();
@@ -378,7 +378,15 @@ public class MovimientoController {
                 // Analizar la fecha con el formatter personalizado
                 LocalDate fecha = LocalDate.parse(dateString, formatter);
 
-                Movimiento movimiento = new Movimiento(0, concepto, cantidad, fecha);
+                String tipoMovimiento = (gastoRadioButton.isSelected()) ? "Gasto" : "Ingreso";
+                String formattedFecha = fecha.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+                int confirmOption = view.showAddMovementConfirmDialog(concepto, tipoMovimiento, cantidad, formattedFecha);
+
+                if (confirmOption != JOptionPane.YES_OPTION) {
+                    return; // Salir si el usuario no confirma
+                }
+
+                movimiento = new Movimiento(0, concepto, cantidad, fecha);
                 boolean success = MovimientoDAO.escribirMovimiento(movimiento);
                 if (success) {
                     JOptionPane.showMessageDialog(view, "Movimiento agregado exitosamente.");
@@ -502,52 +510,52 @@ public class MovimientoController {
                 view.updateHelpText(splitText[0], splitText[1]);
                 view.showArrowAtStep(helpStep);
                 break;
-			case 5:
-				text = "Atajos de teclado:";
+            case 5:
+                text = "Atajos de teclado:";
                 splitText = splitTextInHalf(text);
                 view.updateHelpText(splitText[0],
-						splitText[1],
-						"1.Pagina Principal:",
-						" ",
-						"	-Up/Down por primera vez:",
-						"	selecciona la primera fila.",
-						" ",
-						"	-Up/Down por segunda vez:",
-						"	selecciona el movimiento de",
-						"	arriba/abajo si lo hubiese.",
-						" ",
-						"	-Supr",
-						"	(mientras se selecciona una fila con up/down):",
-						"	pregunta si se desea eliminar el movimiento.",
-						" ",
-						"	-ctrl+n: abre la pestaña de nuevo movimiento.",
-						" ",
-						"	-F1: abre la sección de ayuda.",
-						" ",
-						"2.Cualquier modal:",
-						" ",
-						"	-Esc: sale del modal.",
-						" ",
-						"	-Enter: realiza la acción del proposito del",
-						"	modal si la respuesta fuese afirmativa.",
-						" ",
-						"	-up/down/left/right: permite moverse",
-						"	entre los elementos del modal.",
-						" ",
-						"	-Tab: permite moverse entre los elementos",
-						"	del modal en orden por defecto.",
-						" ",
-						"3.Agregar Movimiento:",
-						" ",
-						"	-left/right (si esta seleccionando el tipo):",
-						"	cambia el tipo entre ingreso y gasto.",
-						" ",
-						"4.Sección de ayuda:",
-						" ",
-						"	-F1: pasa al siguiente paso",
-						"	(o sale de la seccion de ayuda si es el ultimo).");
+                        splitText[1],
+                        "1.Pagina Principal:",
+                        " ",
+                        "	-Up/Down por primera vez:",
+                        "	selecciona la primera fila.",
+                        " ",
+                        "	-Up/Down por segunda vez:",
+                        "	selecciona el movimiento de",
+                        "	arriba/abajo si lo hubiese.",
+                        " ",
+                        "	-Supr",
+                        "	(mientras se selecciona una fila con up/down):",
+                        "	pregunta si se desea eliminar el movimiento.",
+                        " ",
+                        "	-ctrl+n: abre la pestaña de nuevo movimiento.",
+                        " ",
+                        "	-F1: abre la sección de ayuda.",
+                        " ",
+                        "2.Cualquier modal:",
+                        " ",
+                        "	-Esc: sale del modal.",
+                        " ",
+                        "	-Enter: realiza la acción del proposito del",
+                        "	modal si la respuesta fuese afirmativa.",
+                        " ",
+                        "	-up/down/left/right: permite moverse",
+                        "	entre los elementos del modal.",
+                        " ",
+                        "	-Tab: permite moverse entre los elementos",
+                        "	del modal en orden por defecto.",
+                        " ",
+                        "3.Agregar Movimiento:",
+                        " ",
+                        "	-left/right (si esta seleccionando el tipo):",
+                        "	cambia el tipo entre ingreso y gasto.",
+                        " ",
+                        "4.Sección de ayuda:",
+                        " ",
+                        "	-F1: pasa al siguiente paso",
+                        "	(o sale de la seccion de ayuda si es el ultimo).");
                 view.getArrowLabel().setVisible(false);
-				break;
+                break;
             case 6:
                 endHelp();
                 break;
@@ -559,7 +567,7 @@ public class MovimientoController {
         helpStep = 0;
         view.setHelpStep(helpStep);
         view.exitHelpMode();
-		view.limpiarAtajos();
+        view.limpiarAtajos();
         loadData();
     }
 

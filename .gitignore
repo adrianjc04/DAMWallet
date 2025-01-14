@@ -18,3 +18,7 @@
 
 #Ignorar build.xml
 /build.xml
+
+#Ignorar configuraciones
+/config/
+
