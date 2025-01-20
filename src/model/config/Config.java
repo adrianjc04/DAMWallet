@@ -1,4 +1,3 @@
-
 package model.config;
 
 import java.io.File;
@@ -12,12 +11,12 @@ public enum Config {
         @Override
         public boolean esValido(String... args) {
             File archivo = new File(args[0]);
-            return !args[0].isEmpty() || archivo;
+            return args[0] != null && !args[0].isEmpty() && !archivo.exists();
         }
 
         @Override
-        public boolean esValidoActual() {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        public boolean esValidoActual(String nombre) {
+            return esValido(Configurable.leer(NAMESPACE + nombre));
         }
     });
 
