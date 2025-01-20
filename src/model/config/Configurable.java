@@ -9,6 +9,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
  *
@@ -31,9 +33,9 @@ public interface Configurable {
         return lineas.toArray(String[]::new);
     }
     
-    public static boolean modificar(File ruta, String... args){
+    public static boolean reescribir(Config config, String... args){
         boolean cambiado = true;
-        try (BufferedWriter archivo = new BufferedWriter(new FileWriter(ruta))) {
+        try (BufferedWriter archivo = new BufferedWriter(new FileWriter(config.ruta))) {
             for (int i = 0; i < args.length; i++) {
                 archivo.write(args[i]+"\n");
             }
@@ -42,6 +44,20 @@ public interface Configurable {
         }
         return cambiado;
     }
+    
+    public static String seleccionarArchivo(String extension, String ventana) {
+        String ruta = null;
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileFilter(new FileNameExtensionFilter("Archivo de Base de Datos (.db)", "db"));
+        
+        int resultado = fileChooser.showOpenDialog(null);
+        File archivo = fileChooser.getSelectedFile();
+        if (resultado == JFileChooser.APPROVE_OPTION && !archivo.isDirectory()) {
+            ruta = archivo.getAbsolutePath();
+        }
+        
+        return ruta;
+    };
     
     public abstract boolean esValido(String... args);
     

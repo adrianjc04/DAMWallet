@@ -7,7 +7,7 @@ import java.io.File;
  * @author DAM2
  */
 public enum Config {
-    LastFile("ultimaRuta.txt", new Configurable() {
+    LastFile("config" + File.separator + "ultimaRuta.txt",new Configurable() {
         @Override
         public boolean esValido(String... args) {
             File archivo = new File(args[0]);
@@ -20,13 +20,12 @@ public enum Config {
         }
     });
 
-    private Config(String nombre, Configurable configurador) {
-        this.fileName = nombre;
+    private Config(String ruta, Configurable configurador) {
+        this.ruta = ruta;
         this.configurador = configurador;
     }
     
-    public static final String NAMESPACE = "config"+File.separator;
-    public final String fileName;
+    public final String ruta;
     public final Configurable configurador;
     
 }
