@@ -19,15 +19,15 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 public interface Configurable {
     
-    public static String[] leer(String ruta){
+    public static String[] leer(Config config){
         ArrayList<String> lineas = new ArrayList<>();
-        try (BufferedReader archivo = new BufferedReader(new FileReader(ruta))) {
+        try (BufferedReader archivo = new BufferedReader(new FileReader(config.ruta))) {
             String linea;
             while((linea = archivo.readLine()) != null) {
                 lineas.add(linea);
             }
         } catch (IOException e) {
-            System.out.println("Error al leer el archivo "+ruta);
+            System.out.println("Error al leer el archivo "+config.ruta);
         }
         
         return lineas.toArray(String[]::new);
@@ -40,6 +40,7 @@ public interface Configurable {
                 archivo.write(args[i]+"\n");
             }
         } catch (IOException e) {
+            System.out.println("Error al reescribir el contenido en "+config.ruta);
             cambiado = false;
         }
         return cambiado;

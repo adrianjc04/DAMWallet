@@ -16,7 +16,7 @@ public enum Config {
 
         @Override
         public boolean esValidoActual(String nombre) {
-            return esValido(Configurable.leer(NAMESPACE));
+            return esValido(Configurable.leer(Config.LastFile));
         }
     });
 
