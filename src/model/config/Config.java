@@ -1,31 +1,28 @@
 package model.config;
 
 import java.io.File;
+import model.config.configurables.LastFileConfigurator;
 
 /**
  *
  * @author DAM2
  */
 public enum Config {
-    LastFile("config" + File.separator + "ultimaRuta.txt",new Configurable() {
-        @Override
-        public boolean esValido(String... args) {
-            File archivo = new File(args[0]);
-            return args[0] != null && !args[0].isEmpty() && !archivo.exists();
-        }
+    LastFile("config" + File.separator + "ultimaRuta.txt", "Archivo de base de datos (.db)", "db", new LastFileConfigurator());
 
-        @Override
-        public boolean esValidoActual(String nombre) {
-            return esValido(Configurable.leer(Config.LastFile));
+    private Config(String ruta, String descripcionExtensionArchivo, String extensionArchivo, Configurable configurador) {
+        this.RUTA = ruta;
+        this.DESCRIPCION_EXTENSION_ARCHIVO = descripcionExtensionArchivo;
+        this.EXTENSION_ARCHIVO = extensionArchivo;
+        this.CONFIGURADOR = configurador;
+        try {
+            new File(ruta).getParentFile().mkdirs();
+        } catch (NullPointerException e) {
         }
-    });
-
-    private Config(String ruta, Configurable configurador) {
-        this.ruta = ruta;
-        this.configurador = configurador;
     }
-    
-    public final String ruta;
-    public final Configurable configurador;
-    
+
+    public final String RUTA;
+    public final String DESCRIPCION_EXTENSION_ARCHIVO;
+    public final String EXTENSION_ARCHIVO;
+    public final Configurable CONFIGURADOR;
 }
