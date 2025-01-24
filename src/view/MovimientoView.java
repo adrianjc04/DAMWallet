@@ -130,7 +130,16 @@ public class MovimientoView extends JFrame implements BalanceObserver {
 
         JMenuItem mItemAbrir = new JMenuItem("Abrir");
         JMenuItem mItemCerrar = new JMenuItem("Cerrar");
-        JMenuItem mItemExportar = new JMenuItem("Exportar");
+        JMenuItem mItemExportarPDF = new JMenuItem("Exportar a PDF");
+        JMenuItem mItemExportarExcel = new JMenuItem("Exportar a Excel");
+        
+        mItemExportarPDF.addActionListener(l -> {
+            //TODO añadir funcionalidad de las clases de model.informe
+        });
+        
+        mItemExportarExcel.addActionListener(l -> {
+            //TODO añadir funcionalidad de las clases de model.informe
+        });
 
         mItemAbrir.addActionListener(l -> {
             JFileChooser selector = new JFileChooser();
@@ -186,7 +195,8 @@ public class MovimientoView extends JFrame implements BalanceObserver {
         menuArchivo.add(mItemAbrir);
         menuArchivo.add(mItemCerrar);
         menuArchivo.addSeparator();
-        menuArchivo.add(mItemExportar);
+        menuArchivo.add(mItemExportarPDF);
+        menuArchivo.add(mItemExportarExcel);
 
         JMenu menuVer = new JMenu("Ver");
 

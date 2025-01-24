@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
-public class MovimientoDAO {
+public abstract class MovimientoDAO {
 
     public static String rutaBBDD = "BaseDeDatos"+File.separator+"Movimientos.db";
     public static final String NOMBRETABLA = "MOVIMIENTO";
