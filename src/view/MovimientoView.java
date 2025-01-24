@@ -14,9 +14,15 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
+import javafx.application.Platform;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import model.MovimientoDAO;
 import observer.BalanceObserver;
+import model.*;
+import model.informe.CSV;
+import model.informe.PDF;
 
 public class MovimientoView extends JFrame implements BalanceObserver {
 
@@ -131,14 +137,70 @@ public class MovimientoView extends JFrame implements BalanceObserver {
         JMenuItem mItemAbrir = new JMenuItem("Abrir");
         JMenuItem mItemCerrar = new JMenuItem("Cerrar");
         JMenuItem mItemExportarPDF = new JMenuItem("Exportar a PDF");
-        JMenuItem mItemExportarExcel = new JMenuItem("Exportar a Excel");
-        
+        JMenuItem mItemExportarCSV = new JMenuItem("Exportar a CSV");
+
         mItemExportarPDF.addActionListener(l -> {
-            //TODO añadir funcionalidad de las clases de model.informe
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Guardar como PDF");
+            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Archivo PDF (*.pdf)", "pdf"));
+
+            int userSelection = fileChooser.showSaveDialog(null);
+
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                File fileToSave = fileChooser.getSelectedFile();
+
+                // Asegurar que el archivo tenga la extensión .pdf
+                if (!fileToSave.getAbsolutePath().toLowerCase().endsWith(".pdf")) {
+                    fileToSave = new File(fileToSave.getAbsolutePath() + ".pdf");
+                }
+
+                // Obtener la lista de movimientos desde la base de datos
+                Movimiento[] movimientosArray = MovimientoDAO.leerMovimientos("SELECT * FROM " + MovimientoDAO.NOMBRETABLA);
+                List<Movimiento> listaMovimientos = Arrays.asList(movimientosArray);
+
+                PDF pdf = new PDF(listaMovimientos);
+                try {
+                    pdf.guardarGraficoMensual(fileToSave);
+                    JOptionPane.showMessageDialog(null, "Exportado correctamente a PDF.");
+                } catch (IOException e) {
+                    JOptionPane.showMessageDialog(null, "Error al exportar a PDF: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "Exportación cancelada.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            }
         });
-        
-        mItemExportarExcel.addActionListener(l -> {
-            //TODO añadir funcionalidad de las clases de model.informe
+
+        mItemExportarCSV.addActionListener(l -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Guardar como CSV");
+            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Archivo CSV (*.csv)", "csv"));
+
+            int userSelection = fileChooser.showSaveDialog(null);
+
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                File fileToSave = fileChooser.getSelectedFile();
+
+                // Asegurar que el archivo tenga la extensión .csv
+                if (!fileToSave.getAbsolutePath().toLowerCase().endsWith(".csv")) {
+                    fileToSave = new File(fileToSave.getAbsolutePath() + ".csv");
+                }
+
+                // Obtener la lista de movimientos desde la base de datos
+                Movimiento[] movimientosArray = MovimientoDAO.leerMovimientos("SELECT * FROM " + MovimientoDAO.NOMBRETABLA);
+                List<Movimiento> listaMovimientos = Arrays.asList(movimientosArray);
+
+                CSV csv = new CSV(listaMovimientos);
+                try {
+                    csv.guardarDatosMensuales(fileToSave);
+                    JOptionPane.showMessageDialog(null, "Exportado correctamente a CSV.");
+                } catch (IOException e) {
+                    JOptionPane.showMessageDialog(null, "Error al exportar a CSV: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "Exportación cancelada.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            }
         });
 
         mItemAbrir.addActionListener(l -> {
@@ -166,7 +228,7 @@ public class MovimientoView extends JFrame implements BalanceObserver {
                             try {
                                 archivo.close();
                             } catch (IOException iOException) {
-                                System.out.println("Error al cerrar "+RUTA_ULTIMO_ARCHIVO);
+                                System.out.println("Error al cerrar " + RUTA_ULTIMO_ARCHIVO);
                             }
                         }
                     }
@@ -196,7 +258,7 @@ public class MovimientoView extends JFrame implements BalanceObserver {
         menuArchivo.add(mItemCerrar);
         menuArchivo.addSeparator();
         menuArchivo.add(mItemExportarPDF);
-        menuArchivo.add(mItemExportarExcel);
+        menuArchivo.add(mItemExportarCSV);
 
         JMenu menuVer = new JMenu("Ver");
 
