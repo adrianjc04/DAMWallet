@@ -15,7 +15,7 @@ public class Main {
         if (args.length > 1 || (args.length == 1 && !lastFileConfigurator.esValido(args[0]))) {
             System.out.println("DAMWallet - Uso: DAMWallet <Ruta archivo base de datos (.db)>");
             System.exit(1);
-        } else if (args.length == 1 && !lastFileConfigurator.esValido(args[0])) {
+        } else if (args.length == 1 && lastFileConfigurator.esValido(args[0])) {
             lastFileConfigurator.reescribirActual(args[0]);
         } else {
             try {
@@ -26,6 +26,8 @@ public class Main {
                         lastFileConfigurator.reescribirActual(ruta);
                         MovimientoDAO.rutaBBDD = ruta;
                     }
+                } else {
+                    args = Configurable.leer(Config.LastFile);
                 }
             } catch (FileNotFoundException e) {
                 System.out.println("No habia archivo de configuracion " + Config.LastFile.RUTA);
