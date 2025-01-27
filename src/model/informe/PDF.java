@@ -1,46 +1,46 @@
 package model.informe;
 
-import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.chart.BarChart;
-import javafx.scene.chart.CategoryAxis;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.XYChart;
-import javafx.scene.image.WritableImage;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.JFreeChart;
+import org.jfree.data.category.DefaultCategoryDataset;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
-import javax.imageio.ImageIO;
+
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.List;
+import javax.imageio.ImageIO;
 import model.Movimiento;
+import org.jfree.chart.axis.CategoryAxis;
+import org.jfree.chart.axis.CategoryLabelPositions;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.PlotOrientation;
 
-/**
- *
- * @author DAM2
- */
-class PDF extends Informe {
+public class PDF {
+
+    private List<Movimiento> movimientos;
 
     public PDF(List<Movimiento> movimientos) {
-        super(movimientos);
+        this.movimientos = movimientos;
     }
 
     public void guardarGraficoMensual(File file) throws IOException {
-        guardarArchivo(file, LocalDate.now().minusMonths(1), "Movimientos Mensuales");
+        guardarArchivo(file, "Movimientos Totales");
     }
 
     public void guardarGraficoAnual(File file) throws IOException {
-        guardarArchivo(file, LocalDate.now().minusYears(1), "Movimientos Anuales");
+        guardarArchivo(file, "Movimientos Anuales");
     }
 
-    @Override
-    public void guardarArchivo(File file, LocalDate limite, String titulo) throws IOException {
-        BarChart<String, Number> barChart = crearGrafico(titulo, obtenerDatosFiltrados(limite));
-        WritableImage image = barChart.snapshot(null, null);
+    public void guardarArchivo(File file, String titulo) throws IOException {
+        JFreeChart chart = crearGrafico(titulo);
+
+        BufferedImage chartImage = chart.createBufferedImage(600, 400);
         File tempImage = File.createTempFile("chart", ".png");
-        ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", tempImage);
+        ImageIO.write(chartImage, "png", tempImage);
 
         PDDocument document = new PDDocument();
         PDPage page = new PDPage();
@@ -48,35 +48,40 @@ class PDF extends Informe {
 
         PDImageXObject pdImage = PDImageXObject.createFromFile(tempImage.getAbsolutePath(), document);
         PDPageContentStream contentStream = new PDPageContentStream(document, page);
-
         contentStream.drawImage(pdImage, 50, 500, 500, 300);
         contentStream.close();
+
         document.save(file);
         document.close();
         tempImage.delete();
     }
 
-    private BarChart<String, Number> crearGrafico(String titulo, XYChart.Series<String, Number> dataSeries) {
-        CategoryAxis xAxis = new CategoryAxis();
-        NumberAxis yAxis = new NumberAxis();
-        xAxis.setLabel("Mes/Año");
-        yAxis.setLabel("Cantidad");
+    private JFreeChart crearGrafico(String titulo) {
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        
+        for (Movimiento mov : movimientos) {
+            dataset.addValue(mov.getCantidad(), "Cantidad", mov.getFecha().toString());
+        }
 
-        BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
-        barChart.setTitle(titulo);
-        barChart.getData().add(dataSeries);
-        barChart.setStyle("-fx-bar-fill: #123EAF;"); // Azul oscuro
+        JFreeChart chart = ChartFactory.createBarChart(
+                titulo,         // Título
+                "Fecha",        // Etiqueta eje X
+                "Cantidad",     // Etiqueta eje Y
+                dataset,        // Datos
+                org.jfree.chart.plot.PlotOrientation.VERTICAL, // Orientación vertical
+                true,           // Leyenda visible
+                true,           // Tooltips visibles
+                false           // URL de la acción visible
+        );
 
-        return barChart;
-    }
+        // Ajustar las etiquetas de las fechas para que se lean bien
+        CategoryPlot plot = (CategoryPlot) chart.getPlot();
+        CategoryAxis categoryAxis = plot.getDomainAxis();
+        
+        // Rotar las etiquetas del eje X a 45 grados
+        categoryAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
 
-    private XYChart.Series<String, Number> obtenerDatosFiltrados(LocalDate limite) {
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
-
-        movimientos.stream()
-                .filter(mov -> mov.getFecha().isAfter(limite))
-                .forEach(mov -> series.getData().add(new XYChart.Data<>(mov.getFecha().toString(), mov.getCantidad())));
-
-        return series;
+        return chart;
     }
 }
+

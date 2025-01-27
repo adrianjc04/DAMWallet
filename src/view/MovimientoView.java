@@ -9,16 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 import model.Movimiento;
 import controller.MovimientoController;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import model.MovimientoDAO;
 import model.config.Config;
 import model.config.Configurable;
 import observer.BalanceObserver;
+import model.informe.PDF;
 
 public class MovimientoView extends JFrame implements BalanceObserver {
 
@@ -102,6 +100,7 @@ public class MovimientoView extends JFrame implements BalanceObserver {
 
     private void initComponents() {
         setLayout(new BorderLayout());
+        this.setIconImage(new ImageIcon("./imgs/LogoRecortado.png").getImage());
 
         // Deshabilitar las teclas de navegación de foco predeterminadas
         setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, Collections.emptySet());
@@ -133,13 +132,41 @@ public class MovimientoView extends JFrame implements BalanceObserver {
         JMenuItem mItemAbrir = new JMenuItem("Abrir");
         JMenuItem mItemCerrar = new JMenuItem("Cerrar");
         JMenuItem mItemExportarPDF = new JMenuItem("Exportar a PDF");
-        JMenuItem mItemExportarExcel = new JMenuItem("Exportar a Excel");
+        JMenuItem mItemExportarCSV = new JMenuItem("Exportar a CSV");
 
         mItemExportarPDF.addActionListener(l -> {
-            //TODO añadir funcionalidad de las clases de model.informe
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Guardar como PDF");
+            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Archivo PDF (*.pdf)", "pdf"));
+
+            int userSelection = fileChooser.showSaveDialog(null);
+
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                File fileToSave = fileChooser.getSelectedFile();
+
+                // Asegurar que el archivo tenga la extensión .pdf
+                if (!fileToSave.getAbsolutePath().toLowerCase().endsWith(".pdf")) {
+                    fileToSave = new File(fileToSave.getAbsolutePath() + ".pdf");
+                }
+
+                // Obtener la lista de movimientos desde la base de datos
+                Movimiento[] movimientosArray = MovimientoDAO.leerMovimientos("SELECT * FROM " + MovimientoDAO.NOMBRETABLA);
+                List<Movimiento> listaMovimientos = Arrays.asList(movimientosArray);
+
+                PDF pdf = new PDF(listaMovimientos);
+                try {
+                    pdf.guardarGraficoMensual(fileToSave);
+                    JOptionPane.showMessageDialog(null, "Exportado correctamente a PDF.");
+                } catch (IOException e) {
+                    JOptionPane.showMessageDialog(null, "Error al exportar a PDF: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "Exportación cancelada.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            }
         });
 
-        mItemExportarExcel.addActionListener(l -> {
+        mItemExportarCSV.addActionListener(l -> {
             //TODO añadir funcionalidad de las clases de model.informe
         });
 
@@ -170,7 +197,7 @@ public class MovimientoView extends JFrame implements BalanceObserver {
         menuArchivo.add(mItemCerrar);
         menuArchivo.addSeparator();
         menuArchivo.add(mItemExportarPDF);
-        menuArchivo.add(mItemExportarExcel);
+        menuArchivo.add(mItemExportarCSV);
 
         JMenu menuVer = new JMenu("Ver");
 
