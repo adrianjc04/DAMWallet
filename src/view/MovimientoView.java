@@ -106,6 +106,7 @@ public class MovimientoView extends JFrame implements BalanceObserver {
 
     private void initComponents() {
         setLayout(new BorderLayout());
+        this.setIconImage(new ImageIcon("./imgs/LogoRecortado.png").getImage());
 
         // Deshabilitar las teclas de navegación de foco predeterminadas
         setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, Collections.emptySet());
