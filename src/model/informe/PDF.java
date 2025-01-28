@@ -57,19 +57,36 @@ public class PDF {
 
         // Insertar texto
         contentStream.beginText();
-        contentStream.setFont(PDType0Font.load(document, new File("asets\\fuentes\\Roboto-Black.ttf")), 25);
+        contentStream.setFont(PDType0Font.load(document, new File("asets\\fuentes\\Roboto-Black.ttf")), 16);
         contentStream.newLineAtOffset(250, 650);
         contentStream.showText("DAMWallet");
         contentStream.endText();
         contentStream.beginText();
-        contentStream.setFont(PDType0Font.load(document, new File("asets\\fuentes\\Roboto-Black.ttf")), 11);
-        contentStream.newLineAtOffset(50, 620);
+        contentStream.setFont(PDType0Font.load(document, new File("asets\\fuentes\\Roboto-Light.ttf")), 12);
+        contentStream.newLineAtOffset(70, 620);
         contentStream.showText("Este informe presenta un resumen de los movimientos registrados.");
         contentStream.endText();
 
         // Insertar gráfico
         PDImageXObject pdImage = PDImageXObject.createFromFile(tempImage.getAbsolutePath(), document);
         contentStream.drawImage(pdImage, 50, 300, 500, 300);
+
+        // Determinar el gasto más alto y el ingreso más alto
+        Movimiento gastoMayor = movimientos.stream().filter(m -> m.getCantidad() < 0).min((m1, m2) -> Double.compare(m1.getCantidad(), m2.getCantidad())).orElse(null);
+        Movimiento ingresoMayor = movimientos.stream().filter(m -> m.getCantidad() > 0).max((m1, m2) -> Double.compare(m1.getCantidad(), m2.getCantidad())).orElse(null);
+
+        // Mostrar los detalles en el PDF
+        contentStream.beginText();
+        contentStream.setFont(PDType0Font.load(document, new File("asets\\fuentes\\Roboto-Light.ttf")), 12);
+        contentStream.newLineAtOffset(70, 250);
+        if (gastoMayor != null) {
+            contentStream.showText("Gasto más alto: " + gastoMayor.getConcepto() + " -> " + String.format("%.2f", gastoMayor.getCantidad()) + " EUR (" + gastoMayor.getFecha().toString() + ")");
+            contentStream.newLineAtOffset(0, -15);
+        }
+        if (ingresoMayor != null) {
+            contentStream.showText("Ingreso más alto: " + ingresoMayor.getConcepto() + " -> " + String.format("%.2f", ingresoMayor.getCantidad()) + " EUR (" + ingresoMayor.getFecha().toString() + ")");
+        }
+        contentStream.endText();
 
         contentStream.close();
         document.save(file);
