@@ -160,11 +160,12 @@ public class MovimientoView extends JFrame implements BalanceObserver {
                 Movimiento[] movimientosArray = MovimientoDAO.leerMovimientos("SELECT * FROM " + MovimientoDAO.NOMBRETABLA);
                 List<Movimiento> listaMovimientos = Arrays.asList(movimientosArray);
 
-                PDF pdf = new PDF(listaMovimientos);
+                PDF pdf = new PDF(listaMovimientos,"imgs\\LogoRecortado.png");
                 try {
                     pdf.guardarGraficoMensual(fileToSave);
                     JOptionPane.showMessageDialog(null, "Exportado correctamente a PDF.");
                 } catch (IOException e) {
+                    e.printStackTrace();
                     JOptionPane.showMessageDialog(null, "Error al exportar a PDF: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
             } else {
