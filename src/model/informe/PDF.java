@@ -53,12 +53,17 @@ public class PDF {
 
         // Insertar logo
         PDImageXObject logo = PDImageXObject.createFromFile(logoPath, document);
-        contentStream.drawImage(logo, 50, 700, 100, 100);
+        contentStream.drawImage(logo, 250, 700, 100, 100);
 
         // Insertar texto
         contentStream.beginText();
-        contentStream.setFont(PDType0Font.load(document, new File("asets\\fuentes\\Roboto-Black.ttf")), 12);
-        contentStream.newLineAtOffset(50, 650);
+        contentStream.setFont(PDType0Font.load(document, new File("asets\\fuentes\\Roboto-Black.ttf")), 25);
+        contentStream.newLineAtOffset(250, 650);
+        contentStream.showText("DAMWallet");
+        contentStream.endText();
+        contentStream.beginText();
+        contentStream.setFont(PDType0Font.load(document, new File("asets\\fuentes\\Roboto-Black.ttf")), 11);
+        contentStream.newLineAtOffset(50, 620);
         contentStream.showText("Este informe presenta un resumen de los movimientos registrados.");
         contentStream.endText();
 
