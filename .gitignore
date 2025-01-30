@@ -22,3 +22,6 @@
 #Ignorar configuraciones
 /config/
 
+#Ignorar csv y pdf
+*.pdf
+*.csv

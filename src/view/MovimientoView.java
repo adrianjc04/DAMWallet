@@ -14,13 +14,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
-import javafx.application.Platform;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import model.MovimientoDAO;
 import observer.BalanceObserver;
-import model.*;
 import model.informe.CSV;
 import model.informe.PDF;
 
