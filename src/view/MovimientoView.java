@@ -9,18 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 import model.Movimiento;
 import controller.MovimientoController;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
-import javafx.application.Platform;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import model.MovimientoDAO;
+import model.config.Config;
+import model.config.Configurable;
 import observer.BalanceObserver;
-import model.*;
 import model.informe.CSV;
 import model.informe.PDF;
 
@@ -174,81 +170,25 @@ public class MovimientoView extends JFrame implements BalanceObserver {
         });
 
         mItemExportarCSV.addActionListener(l -> {
-            JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setDialogTitle("Guardar como CSV");
-            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Archivo CSV (*.csv)", "csv"));
-
-            int userSelection = fileChooser.showSaveDialog(null);
-
-            if (userSelection == JFileChooser.APPROVE_OPTION) {
-                File fileToSave = fileChooser.getSelectedFile();
-
-                // Asegurar que el archivo tenga la extensión .csv
-                if (!fileToSave.getAbsolutePath().toLowerCase().endsWith(".csv")) {
-                    fileToSave = new File(fileToSave.getAbsolutePath() + ".csv");
-                }
-
-                // Obtener la lista de movimientos desde la base de datos
-                Movimiento[] movimientosArray = MovimientoDAO.leerMovimientos("SELECT * FROM " + MovimientoDAO.NOMBRETABLA);
-                List<Movimiento> listaMovimientos = Arrays.asList(movimientosArray);
-
-                CSV csv = new CSV(listaMovimientos);
-                try {
-                    csv.guardarDatosMensuales(fileToSave);
-                    JOptionPane.showMessageDialog(null, "Exportado correctamente a CSV.");
-                } catch (IOException e) {
-                    JOptionPane.showMessageDialog(null, "Error al exportar a CSV: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            } else {
-                JOptionPane.showMessageDialog(null, "Exportación cancelada.", "Aviso", JOptionPane.WARNING_MESSAGE);
-            }
+            //TODO añadir funcionalidad de las clases de model.informe
         });
 
         mItemAbrir.addActionListener(l -> {
-            JFileChooser selector = new JFileChooser();
-            selector.setFileFilter(new FileNameExtensionFilter("Archivos de base de datos (.db)", "db"));
-            int resultado = selector.showOpenDialog(this);
-            if (resultado == JFileChooser.APPROVE_OPTION) {
-                String rutaSeleccionada = selector.getSelectedFile().getAbsolutePath();
-                File fileRutaSeleccionada = new File(rutaSeleccionada);
-                if (!fileRutaSeleccionada.isDirectory() && rutaSeleccionada != null && !rutaSeleccionada.trim().isEmpty()) {
-                    BufferedWriter archivo = null;
-                    try {
-                        archivo = new BufferedWriter(new FileWriter(RUTA_ULTIMO_ARCHIVO));
-                        archivo.write(rutaSeleccionada);
-                    } catch (IOException e) {
-                        if (archivo != null) {
-                            try {
-                                archivo.close();
-                            } catch (IOException ex) {
-                                System.out.println("Error al cerrar el archivo ");
-                            }
-                        }
-                    } finally {
-                        if (archivo != null) {
-                            try {
-                                archivo.close();
-                            } catch (IOException iOException) {
-                                System.out.println("Error al cerrar " + RUTA_ULTIMO_ARCHIVO);
-                            }
-                        }
-                    }
-                    if (!fileRutaSeleccionada.exists()) {
-                        try {
-                            fileRutaSeleccionada.getParentFile().mkdirs();
-                        } catch (NullPointerException e) {
-                        }
-                    }
-                    MovimientoDAO.rutaBBDD = rutaSeleccionada;
-                    if (MovimientoDAO.crearBaseDeDatos()) {
-                        System.out.println("Abriendo " + rutaSeleccionada);
-                        setMovements(MovimientoDAO.leerMovimientos("SELECT * FROM MOVIMIENTO;"));
-                        updateMovementSelection();
-                    } else {
-                        System.out.println("Error al abrir " + rutaSeleccionada);
-                    }
-                }
+            Configurable lastFileConfigurator = Config.LastFile.CONFIGURADOR;
+            String rutaSeleccionada = lastFileConfigurator.seleccionarArchivoActual();
+            if (lastFileConfigurator.esValido(rutaSeleccionada)) {
+                lastFileConfigurator.reescribirActual(rutaSeleccionada);
+                System.out.println("Seleccionado "+rutaSeleccionada);
+            }
+
+            MovimientoDAO.rutaBBDD = rutaSeleccionada;
+            if (MovimientoDAO.crearBaseDeDatos()) {
+                System.out.println("Abriendo " + rutaSeleccionada);
+                setMovements(MovimientoDAO.leerMovimientos("SELECT * FROM MOVIMIENTO;"));
+                updateMovementSelection();
+                SwingUtilities.invokeLater(() -> simularClic(totalLabel));
+            } else {
+                System.out.println("Error al abrir " + rutaSeleccionada);
             }
         });
 
@@ -407,6 +347,15 @@ public class MovimientoView extends JFrame implements BalanceObserver {
 
         // Configurar Key Binding para F1, Tab, Ctrl+N, Ctrl+Z, Flechas y Supr
         setupKeyBindings();
+    }
+
+    public static void simularClic(JLabel label) {
+        // Crear el evento MouseEvent que simula un clic
+        MouseEvent event = new MouseEvent(label, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(),
+                0, label.getWidth() / 2, label.getHeight() / 2, 1, false);
+
+        // Disparar el evento al JLabel
+        label.dispatchEvent(event);
     }
 
     private void setupKeyBindings() {
