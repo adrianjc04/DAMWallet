@@ -170,7 +170,35 @@ public class MovimientoView extends JFrame implements BalanceObserver {
         });
 
         mItemExportarCSV.addActionListener(l -> {
-            //TODO añadir funcionalidad de las clases de model.informe
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Guardar como CSV");
+            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Archivo CSV (*.csv)", "csv"));
+
+            int userSelection = fileChooser.showSaveDialog(null);
+
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                File fileToSave = fileChooser.getSelectedFile();
+
+                // Asegurar que el archivo tenga la extensión .csv
+                if (!fileToSave.getAbsolutePath().toLowerCase().endsWith(".csv")) {
+                    fileToSave = new File(fileToSave.getAbsolutePath() + ".csv");
+                }
+
+                // Obtener la lista de movimientos desde la base de datos
+                Movimiento[] movimientosArray = MovimientoDAO.leerMovimientos("SELECT * FROM " + MovimientoDAO.NOMBRETABLA);
+                List<Movimiento> listaMovimientos = Arrays.asList(movimientosArray);
+
+                CSV csv = new CSV(listaMovimientos);
+                try {
+                    csv.guardarDatosMensuales(fileToSave);
+                    JOptionPane.showMessageDialog(null, "Exportado correctamente a CSV.");
+                } catch (IOException e) {
+                    JOptionPane.showMessageDialog(null, "Error al exportar a CSV: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "Exportación cancelada.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            }
         });
 
         mItemAbrir.addActionListener(l -> {
