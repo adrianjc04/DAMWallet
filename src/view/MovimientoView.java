@@ -23,7 +23,7 @@ import model.informe.PDF;
 public class MovimientoView extends JFrame implements BalanceObserver {
 
     final String RUTA_ULTIMO_ARCHIVO = "config" + File.separator + "ultimaRuta.txt";
-    private JLabel[] atajos;
+    private Component[] atajos;
     private JPanel movementsPanel;
     private JLabel balanceLabel;
     private JLabel recentTransactionsLabel;
@@ -156,7 +156,7 @@ public class MovimientoView extends JFrame implements BalanceObserver {
                 Movimiento[] movimientosArray = MovimientoDAO.leerMovimientos("SELECT * FROM " + MovimientoDAO.NOMBRETABLA);
                 List<Movimiento> listaMovimientos = Arrays.asList(movimientosArray);
 
-                PDF pdf = new PDF(listaMovimientos,"imgs\\LogoRecortado.png");
+                PDF pdf = new PDF(listaMovimientos, "imgs\\LogoRecortado.png");
                 try {
                     pdf.guardarGraficoMensual(fileToSave);
                     JOptionPane.showMessageDialog(null, "Exportado correctamente a PDF.");
@@ -206,7 +206,7 @@ public class MovimientoView extends JFrame implements BalanceObserver {
             String rutaSeleccionada = lastFileConfigurator.seleccionarArchivoActual();
             if (lastFileConfigurator.esValido(rutaSeleccionada)) {
                 lastFileConfigurator.reescribirActual(rutaSeleccionada);
-                System.out.println("Seleccionado "+rutaSeleccionada);
+                System.out.println("Seleccionado " + rutaSeleccionada);
             }
 
             MovimientoDAO.rutaBBDD = rutaSeleccionada;
@@ -1122,18 +1122,22 @@ public class MovimientoView extends JFrame implements BalanceObserver {
         });
     }
 
-    public void updateHelpText(String text1, String text2, String... otrosTextos) {
+    public void updateHelpText(String text1, String text2, Object... otrosComponentes) {
         helpTextLabel1.setText(text1);
         helpTextLabel2.setText(text2);
-        atajos = new JLabel[otrosTextos.length];
+        atajos = new Component[otrosComponentes.length];
         for (int i = 0; i < atajos.length; i++) {
-            atajos[i] = new JLabel(otrosTextos[i], SwingConstants.CENTER);
-            if (otrosTextos[i].matches("[0-9].*")) {
-                atajos[i].setFont(new Font("Arial", Font.BOLD, 14));
+            if (otrosComponentes[i] instanceof String) {
+                atajos[i] = new JLabel((String)otrosComponentes[i]);
+                if (((String) otrosComponentes[i]).matches("[0-9].*")) {
+                    atajos[i].setFont(new Font("Arial", Font.BOLD, 14));
+                } else {
+                    atajos[i].setFont(new Font("Arial", Font.PLAIN, 14));
+                }
             } else {
-                atajos[i].setFont(new Font("Arial", Font.PLAIN, 14));
+                atajos[i] = (JLabel) otrosComponentes[i];
             }
-            atajos[i].setAlignmentX(Component.CENTER_ALIGNMENT);
+            ((JComponent)atajos[i]).setAlignmentX(Component.CENTER_ALIGNMENT);
             centerPanel.add(atajos[i]);
         }
     }

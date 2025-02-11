@@ -557,6 +557,24 @@ public class MovimientoController {
                 view.getArrowLabel().setVisible(false);
                 break;
             case 6:
+                view.limpiarAtajos();
+                text = "Menu principal:"+" En esta seccion puedes realizar varias acciones relacionadas a como se ve la aplicacion y al guardado de datos carteras diferentes.";
+                splitText = splitTextInHalf(text);
+                view.updateHelpText(splitText[0],
+                        splitText[1], 
+                        "1.Abrir",
+                        "-Permite abrir o crear una nueva cartera",
+                        "2.Cerrar",
+                        "-Cierra el programa",
+                        "3.Exportar a PDF",
+                        "-Permite ver un resumen de los datos actuales del último mes en formato PDF",
+                        "4.Exportar a CSV",
+                        "-Permite ver todos los datos en CSV. Útil si se pretende gestionar los datos en otra aplicación.",
+                        new JLabel(new ImageIcon(new ImageIcon("imgs/ayuda1.png").getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH))),
+                        " ",
+                        new JLabel(new ImageIcon(new ImageIcon("imgs/ayuda2.png").getImage().getScaledInstance(100, 35, Image.SCALE_SMOOTH))));
+                break;
+            case 7:
                 endHelp();
                 break;
         }
