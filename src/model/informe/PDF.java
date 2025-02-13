@@ -21,24 +21,68 @@ import org.jfree.chart.axis.CategoryLabelPositions;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 
+/**
+ * La clase PDF es responsable de generar y guardar un informe en formato PDF que incluye 
+ * una lista de movimientos financieros y un gráfico de barras que representa los movimientos 
+ * en función de su cantidad.
+ * 
+ * El informe generado incluye el logo de la empresa, la fecha del informe, el título "DAMWallet", 
+ * una lista de movimientos con fecha, concepto y cantidad, y un gráfico de barras con los 
+ * movimientos financieros.
+ * 
+ * Esta clase utiliza la biblioteca Apache PDFBox para crear el documento PDF y JFreeChart 
+ * para generar el gráfico.
+ * 
+ * @author DAM2
+ */
 public class PDF {
 
     private List<Movimiento> movimientos;
     private String logoPath;
 
+    /**
+     * Constructor que inicializa la lista de movimientos y la ruta del logo que se 
+     * incluirá en el informe.
+     * 
+     * @param movimientos la lista de movimientos financieros a incluir en el informe.
+     * @param logoPath la ruta del archivo de imagen del logo a incluir en el informe.
+     */
     public PDF(List<Movimiento> movimientos, String logoPath) {
         this.movimientos = movimientos;
         this.logoPath = logoPath;
     }
 
+    /**
+     * Guarda un archivo PDF con el gráfico de los movimientos correspondientes al último mes.
+     * Llama al método `guardarArchivo` para generar el informe y guardarlo en el archivo proporcionado.
+     * 
+     * @param file el archivo donde se guardará el informe PDF.
+     * @throws IOException si ocurre un error al escribir el archivo PDF.
+     */
     public void guardarGraficoMensual(File file) throws IOException {
         guardarArchivo(file, "Movimientos Totales");
     }
 
+    /**
+     * Guarda un archivo PDF con el gráfico de los movimientos correspondientes al último año.
+     * Llama al método `guardarArchivo` para generar el informe y guardarlo en el archivo proporcionado.
+     * 
+     * @param file el archivo donde se guardará el informe PDF.
+     * @throws IOException si ocurre un error al escribir el archivo PDF.
+     */
     public void guardarGraficoAnual(File file) throws IOException {
         guardarArchivo(file, "Movimientos Anuales");
     }
 
+    /**
+     * Guarda un archivo PDF que incluye un gráfico de barras y una lista de movimientos, 
+     * con un título específico. Los movimientos que se incluyen en el gráfico y el informe 
+     * dependen del título (mensual o anual).
+     * 
+     * @param file el archivo donde se guardará el informe PDF.
+     * @param titulo el título que se utilizará en el gráfico (por ejemplo, "Movimientos Totales").
+     * @throws IOException si ocurre un error al escribir el archivo PDF.
+     */
     public void guardarArchivo(File file, String titulo) throws IOException {
         JFreeChart chart = crearGrafico(titulo);
         BufferedImage chartImage = chart.createBufferedImage(600, 400);
@@ -68,7 +112,6 @@ public class PDF {
         contentStream.newLineAtOffset(250, 680);
         contentStream.showText("DAMWallet");
         contentStream.endText();
-
 
         // Insertar lista de movimientos
         contentStream.beginText();
@@ -104,6 +147,13 @@ public class PDF {
         tempImage.delete();
     }
 
+    /**
+     * Crea un gráfico de barras utilizando los movimientos financieros.
+     * El gráfico utiliza la fecha como el eje de categorías y la cantidad como el eje de valores.
+     * 
+     * @param titulo el título que se utilizará para el gráfico.
+     * @return un objeto JFreeChart que representa el gráfico generado.
+     */
     private JFreeChart crearGrafico(String titulo) {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         

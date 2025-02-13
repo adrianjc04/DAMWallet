@@ -33,7 +33,10 @@ public class Main {
                 System.out.println("No habia archivo de configuracion " + Config.LastFile.RUTA);
             }
         }
-        MovimientoDAO.rutaBBDD = args[0];
+        try {
+            MovimientoDAO.rutaBBDD = args[0];
+        } catch (ArrayIndexOutOfBoundsException e) {
+        }
         try {
             if (MovimientoDAO.crearBaseDeDatos()) {
                 if (lastFileConfigurator.esValidoActual()) {
