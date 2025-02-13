@@ -83,7 +83,7 @@ public class MovimientoView extends JFrame implements BalanceObserver {
     public MovimientoView() {
         setTitle("DAMWallet");
         setSize(800, 600);
-        setMinimumSize(new Dimension(370, 667));
+        setMinimumSize(new Dimension(670, 667));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         initComponents();
