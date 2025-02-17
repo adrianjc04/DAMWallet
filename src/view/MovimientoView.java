@@ -13,6 +13,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import model.MovimientoDAO;
 import model.config.Config;
 import model.config.Configurable;
@@ -316,7 +318,7 @@ public class MovimientoView extends JFrame implements BalanceObserver {
         movementsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         centerPanel = new JPanel();
-        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
+        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.PAGE_AXIS));
         centerPanel.add(recentTransactionsLabel);
         centerPanel.add(Box.createVerticalStrut(10));
         centerPanel.add(helpTextLabel1);
@@ -921,7 +923,7 @@ public class MovimientoView extends JFrame implements BalanceObserver {
             add(deleteButton, BorderLayout.WEST);
 
             JPanel centroPanel = new JPanel();
-            centroPanel.setLayout(new BoxLayout(centroPanel, BoxLayout.Y_AXIS));
+            centroPanel.setLayout(new BoxLayout(centroPanel, BoxLayout.PAGE_AXIS));
             centroPanel.setOpaque(false); // Mantener transparente
 
             JLabel conceptoLabel = new JLabel(movimiento.getConcepto());
@@ -1122,24 +1124,146 @@ public class MovimientoView extends JFrame implements BalanceObserver {
         });
     }
 
+    private JTable table;
+    private JScrollPane scrollPane2;
+    private JPanel wrapperPanel = new JPanel();
+
     public void updateHelpText(String text1, String text2, Object... otrosComponentes) {
         helpTextLabel1.setText(text1);
         helpTextLabel2.setText(text2);
+
         atajos = new Component[otrosComponentes.length];
-        for (int i = 0; i < atajos.length; i++) {
-            if (otrosComponentes[i] instanceof String) {
-                atajos[i] = new JLabel((String)otrosComponentes[i]);
-                if (((String) otrosComponentes[i]).matches("[0-9].*")) {
-                    atajos[i].setFont(new Font("Arial", Font.BOLD, 14));
-                } else {
-                    atajos[i].setFont(new Font("Arial", Font.PLAIN, 14));
+
+        // Determinar cuántos elementos son texto y cuántos son imágenes
+        List<Object[]> dataList = new ArrayList<>();
+
+        for (Object obj : otrosComponentes) {
+            if (obj instanceof String) {
+                dataList.add(new Object[]{obj}); // Agregar texto como fila
+            } else if (obj instanceof JLabel) {
+                JLabel imageLabel = (JLabel) obj;
+                if (imageLabel.getIcon() != null) {
+                    dataList.add(new Object[]{imageLabel}); // Agregar imagen como fila
                 }
-            } else {
-                atajos[i] = (JLabel) otrosComponentes[i];
             }
-            ((JComponent)atajos[i]).setAlignmentX(Component.CENTER_ALIGNMENT);
-            centerPanel.add(atajos[i]);
         }
+
+        // Convertir la lista a un array
+        Object[][] data = dataList.toArray(new Object[0][1]);
+
+        // Crear la tabla solo si hay datos
+        if (data.length > 0) {
+            String[] columnNames = {""}; // Sin encabezado visible
+            table = new JTable(new AbstractTableModel() {
+                @Override
+                public int getRowCount() {
+                    return data.length;
+                }
+
+                @Override
+                public int getColumnCount() {
+                    return 1;
+                }
+
+                @Override
+                public Object getValueAt(int rowIndex, int columnIndex) {
+                    return data[rowIndex][0];
+                }
+
+                @Override
+                public Class<?> getColumnClass(int columnIndex) {
+                    return Object.class; // Permite mezclar texto e imágenes
+                }
+
+                @Override
+                public boolean isCellEditable(int rowIndex, int columnIndex) {
+                    return false; // Hace que las celdas no sean editables
+                }
+            });
+
+            table.setFont(new Font("Arial", Font.PLAIN, 14));
+            table.setRowHeight(25);
+            table.setTableHeader(null); // Oculta los encabezados de columna
+            table.setShowGrid(false); // Oculta las líneas de la tabla
+            table.setIntercellSpacing(new Dimension(0, 0)); // Elimina el espacio entre celdas
+            table.setOpaque(false); // Hace que la tabla no tenga fondo
+            table.setBackground(new Color(0, 0, 0, 0)); // Fondo completamente transparente
+            table.setBorder(BorderFactory.createEmptyBorder()); // Elimina cualquier borde
+            table.setShowVerticalLines(false); // Quita líneas verticales
+            table.setShowHorizontalLines(false); // Quita líneas horizontales
+            table.setFillsViewportHeight(true);
+
+            // 🔹 Evitar selección de filas y columnas
+            table.setRowSelectionAllowed(false);
+            table.setColumnSelectionAllowed(false);
+            table.setCellSelectionEnabled(false);
+
+            // 🔹 Evitar que la tabla reciba el foco al hacer clic
+            table.setFocusable(false);
+
+            // 🔹 Renderizador personalizado para manejar texto e imágenes
+            table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+                @Override
+                public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                    if (value instanceof JLabel) {
+                        return (JLabel) value; // Mostrar imagen directamente
+                    } else {
+                        String text = value == null ? "" : value.toString();
+                        JLabel cell = new JLabel(text);
+                        cell.setOpaque(false); // Hace que la celda no tenga fondo
+
+                        // 🔹 Aplicar negrita si el texto empieza con un número seguido de punto
+                        if (text.matches("^[0-9]+\\..*")) {
+                            cell.setFont(new Font("Arial", Font.BOLD, 14)); // Negrita
+                        } else {
+                            cell.setFont(new Font("Arial", Font.PLAIN, 14)); // Normal
+                        }
+
+                        return cell;
+                    }
+                }
+            });
+
+            // Crear un JScrollPane sin fondo, pero con scroll vertical dinámico
+            scrollPane2 = new JScrollPane(table);
+            scrollPane2.setBorder(BorderFactory.createEmptyBorder()); // Sin bordes
+            scrollPane2.setViewportBorder(BorderFactory.createEmptyBorder()); // Quita cualquier borde del viewport
+            scrollPane2.setOpaque(false); // Hace que el scrollpane sea transparente
+            scrollPane2.getViewport().setOpaque(false); // Hace que el área del viewport sea transparente
+
+            // 🔹 Ajustar la altura dinámicamente
+            int tableHeight = table.getRowCount() * table.getRowHeight();
+            scrollPane2.setPreferredSize(new Dimension(500, Math.min(300, tableHeight))); // Máximo 300px de alto
+
+            // 🔹 Permitir scroll vertical si hay demasiados elementos
+            scrollPane2.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER); // Desactiva scroll horizontal
+            scrollPane2.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED); // Activar scroll vertical cuando sea necesario
+
+            // 🔹 Aumentar la velocidad del scroll con el mousewheel
+            scrollPane2.getVerticalScrollBar().setUnitIncrement(20);
+        } else {
+            table = null;
+            scrollPane2 = null;
+        }
+
+        // Ajustar el panel sin limpiarlo (como en tu versión)
+        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
+
+        // Agregar textos al panel
+        centerPanel.add(helpTextLabel1);
+        centerPanel.add(helpTextLabel2);
+
+        // Agregar la tabla solo si existe
+        if (scrollPane2 != null) {
+            wrapperPanel = new JPanel();
+            wrapperPanel.setLayout(new FlowLayout(FlowLayout.CENTER)); // Centra la tabla
+            wrapperPanel.setOpaque(false); // Hace que el panel contenedor también sea transparente
+            wrapperPanel.add(scrollPane2);
+            centerPanel.add(wrapperPanel);
+        }
+
+        centerPanel.revalidate();
+        centerPanel.repaint();
     }
 
     public void showArrowAtStep(int step) {
@@ -1232,7 +1356,14 @@ public class MovimientoView extends JFrame implements BalanceObserver {
 
     public void limpiarAtajos() {
         for (int i = 0; i < atajos.length; i++) {
-            centerPanel.remove(atajos[i]);
+            try {
+                centerPanel.remove(atajos[i]);
+            } catch (NullPointerException e) {
+            }
+        }
+        try {
+            centerPanel.remove(wrapperPanel);
+        } catch (NullPointerException e) {
         }
     }
 }

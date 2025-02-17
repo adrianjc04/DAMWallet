@@ -14,10 +14,10 @@ import observer.BalanceObserver;
 import view.MovimientoView;
 
 /**
- * Controlador principal para la gestión de movimientos financieros, incluyendo la 
- * visualización de movimientos, la aplicación de filtros, y la adición o eliminación 
- * de movimientos. Este controlador implementa el patrón Observer para notificar 
- * a los observadores de los cambios en el balance.
+ * Controlador principal para la gestión de movimientos financieros, incluyendo
+ * la visualización de movimientos, la aplicación de filtros, y la adición o
+ * eliminación de movimientos. Este controlador implementa el patrón Observer
+ * para notificar a los observadores de los cambios en el balance.
  */
 public class MovimientoController {
 
@@ -30,9 +30,10 @@ public class MovimientoController {
     private List<BalanceObserver> observers = new ArrayList<>();
 
     /**
-     * Constructor de la clase MovimientoController que inicializa la vista y establece 
-     * los listeners para los botones y teclas de la interfaz de usuario.
-     * 
+     * Constructor de la clase MovimientoController que inicializa la vista y
+     * establece los listeners para los botones y teclas de la interfaz de
+     * usuario.
+     *
      * @param view la vista asociada al controlador.
      */
     public MovimientoController(MovimientoView view) {
@@ -60,7 +61,7 @@ public class MovimientoController {
 
     /**
      * Calcula el balance total sumando la cantidad de todos los movimientos.
-     * 
+     *
      * @return el balance total calculado.
      */
     private double calculateTotalBalance() {
@@ -75,8 +76,9 @@ public class MovimientoController {
     }
 
     /**
-     * Añade un observador a la lista de observadores que se notifican cuando cambia el balance.
-     * 
+     * Añade un observador a la lista de observadores que se notifican cuando
+     * cambia el balance.
+     *
      * @param observer el observador a añadir.
      */
     public void addObserver(BalanceObserver observer) {
@@ -85,7 +87,7 @@ public class MovimientoController {
 
     /**
      * Elimina un observador de la lista de observadores.
-     * 
+     *
      * @param observer el observador a eliminar.
      */
     public void removeObserver(BalanceObserver observer) {
@@ -94,7 +96,7 @@ public class MovimientoController {
 
     /**
      * Notifica a todos los observadores sobre un cambio en el balance.
-     * 
+     *
      * @param balance el nuevo balance.
      */
     private void notifyBalanceChange(double balance) {
@@ -104,8 +106,8 @@ public class MovimientoController {
     }
 
     /**
-     * Carga los datos de los movimientos desde la base de datos y actualiza la vista
-     * según el filtro actual.
+     * Carga los datos de los movimientos desde la base de datos y actualiza la
+     * vista según el filtro actual.
      */
     private void loadData() {
         if (inHelpMode) {
@@ -147,7 +149,7 @@ public class MovimientoController {
 
     /**
      * Elimina un movimiento específico de la base de datos.
-     * 
+     *
      * @param id el ID del movimiento a eliminar.
      */
     public void deleteMovimiento(long id) {
@@ -218,10 +220,11 @@ public class MovimientoController {
             startHelp();
         }
     }
+
     /**
-     * Abre el cuadro de diálogo para agregar un nuevo movimiento.
-     * Permite al usuario ingresar un concepto, una cantidad y una fecha, 
-     * así como seleccionar si el movimiento es un ingreso o un gasto.
+     * Abre el cuadro de diálogo para agregar un nuevo movimiento. Permite al
+     * usuario ingresar un concepto, una cantidad y una fecha, así como
+     * seleccionar si el movimiento es un ingreso o un gasto.
      */
     public void addMovimiento() {
         JTextField conceptoField = new JTextField();
@@ -458,9 +461,10 @@ public class MovimientoController {
     private class AddButtonListener implements ActionListener {
 
         /**
-         * Acción que se ejecuta cuando se hace clic en el botón de agregar movimiento.
-         * Llama al método para agregar un nuevo movimiento, si no estamos en el modo de ayuda.
-         * 
+         * Acción que se ejecuta cuando se hace clic en el botón de agregar
+         * movimiento. Llama al método para agregar un nuevo movimiento, si no
+         * estamos en el modo de ayuda.
+         *
          * @param e el evento de acción.
          */
         @Override
@@ -476,7 +480,7 @@ public class MovimientoController {
         /**
          * Acción que se ejecuta cuando se hace clic en el botón de ayuda.
          * Inicia el modo de ayuda.
-         * 
+         *
          * @param e el evento de acción.
          */
         @Override
@@ -484,14 +488,14 @@ public class MovimientoController {
             startHelp();
         }
     }
+
     // Acción para la tecla F1
     private class HelpKeyAction extends AbstractAction {
 
         /**
-         * Acción asociada a la tecla F1.
-         * Si estamos en modo ayuda, avanza al siguiente paso.
-         * Si no estamos en modo ayuda, inicia el modo de ayuda.
-         * 
+         * Acción asociada a la tecla F1. Si estamos en modo ayuda, avanza al
+         * siguiente paso. Si no estamos en modo ayuda, inicia el modo de ayuda.
+         *
          * @param e el evento de acción.
          */
         @Override
@@ -510,9 +514,9 @@ public class MovimientoController {
     private class TabKeyAction extends AbstractAction {
 
         /**
-         * Acción asociada a la tecla Tab.
-         * Permite cambiar entre los filtros de los movimientos: Total, Mes y Año.
-         * 
+         * Acción asociada a la tecla Tab. Permite cambiar entre los filtros de
+         * los movimientos: Total, Mes y Año.
+         *
          * @param e el evento de acción.
          */
         @Override
@@ -525,9 +529,9 @@ public class MovimientoController {
     private class CtrlNKeyAction extends AbstractAction {
 
         /**
-         * Acción asociada a la combinación Ctrl+N.
-         * Abre el diálogo para agregar un nuevo movimiento si no estamos en modo ayuda.
-         * 
+         * Acción asociada a la combinación Ctrl+N. Abre el diálogo para agregar
+         * un nuevo movimiento si no estamos en modo ayuda.
+         *
          * @param e el evento de acción.
          */
         @Override
@@ -542,9 +546,9 @@ public class MovimientoController {
     private class CtrlZKeyAction extends AbstractAction {
 
         /**
-         * Acción asociada a la combinación Ctrl+Z.
-         * Restaura el último movimiento eliminado si no estamos en modo ayuda.
-         * 
+         * Acción asociada a la combinación Ctrl+Z. Restaura el último
+         * movimiento eliminado si no estamos en modo ayuda.
+         *
          * @param e el evento de acción.
          */
         @Override
@@ -556,7 +560,8 @@ public class MovimientoController {
     }
 
     /**
-     * Inicia el modo de ayuda, configurando el paso inicial y mostrando el texto de ayuda.
+     * Inicia el modo de ayuda, configurando el paso inicial y mostrando el
+     * texto de ayuda.
      */
     private void startHelp() {
         inHelpMode = true;
@@ -573,9 +578,9 @@ public class MovimientoController {
     private class ContinueButtonListener implements ActionListener {
 
         /**
-         * Acción asociada al botón de continuar en el modo de ayuda.
-         * Avanza al siguiente paso de la ayuda.
-         * 
+         * Acción asociada al botón de continuar en el modo de ayuda. Avanza al
+         * siguiente paso de la ayuda.
+         *
          * @param e el evento de acción.
          */
         @Override
@@ -585,13 +590,15 @@ public class MovimientoController {
     }
 
     /**
-     * Avanza al siguiente paso del modo de ayuda, actualizando el texto y la flecha indicadora.
+     * Avanza al siguiente paso del modo de ayuda, actualizando el texto y la
+     * flecha indicadora.
      */
     private void nextHelpStep() {
         helpStep++;
         view.setHelpStep(helpStep);
         String text;
         String[] splitText;
+
         switch (helpStep) {
             case 2:
                 text = "Muestra los gastos/ingresos en los últimos 30 días y el balance correspondiente.";
@@ -599,19 +606,27 @@ public class MovimientoController {
                 view.updateHelpText(splitText[0], splitText[1]);
                 view.showArrowAtStep(helpStep);
                 break;
+
             case 3:
                 text = "Muestra los gastos/ingresos en los últimos 365 días y el balance correspondiente.";
                 splitText = splitTextInHalf(text);
                 view.updateHelpText(splitText[0], splitText[1]);
                 view.showArrowAtStep(helpStep);
                 break;
+
             case 4:
+                view.repaint();
+                view.revalidate();
                 text = "Permite añadir un ingreso/gasto con su respectivo concepto y fecha.";
                 splitText = splitTextInHalf(text);
                 view.updateHelpText(splitText[0], splitText[1]);
                 view.showArrowAtStep(helpStep);
                 break;
-            case 5:
+
+            case 5: // Activar la tabla con los atajos
+                view.repaint();
+                view.revalidate();
+                view.limpiarAtajos();
                 text = "Atajos de teclado:";
                 splitText = splitTextInHalf(text);
                 view.updateHelpText(splitText[0],
@@ -657,9 +672,12 @@ public class MovimientoController {
                         "	(o sale de la seccion de ayuda si es el ultimo).");
                 view.getArrowLabel().setVisible(false);
                 break;
-            case 6:
+
+            case 6: // Agregar tabla + iconos
+                view.repaint();
+                view.revalidate();
                 view.limpiarAtajos();
-                text = "Menu principal:"+" En esta seccion puedes realizar varias acciones relacionadas a como se ve la aplicacion y al guardado de datos carteras diferentes.";
+                text = "Menu principal: Permite gestionar la aplicación y el guardado de datos.";
                 splitText = splitTextInHalf(text);
                 view.updateHelpText(splitText[0],
                         splitText[1], 
@@ -676,14 +694,19 @@ public class MovimientoController {
                         " ",
                         new JLabel(new ImageIcon(new ImageIcon("imgs/ayuda2.png").getImage().getScaledInstance(100, 35, Image.SCALE_SMOOTH))));
                 break;
-            case 7:
+
+            case 7: // Ocultar la tabla
+                view.limpiarAtajos();
                 endHelp();
+                view.repaint();
+                view.revalidate();
                 break;
         }
     }
 
     /**
-     * Finaliza el modo de ayuda, restableciendo las configuraciones y mostrando los datos actuales.
+     * Finaliza el modo de ayuda, restableciendo las configuraciones y mostrando
+     * los datos actuales.
      */
     private void endHelp() {
         inHelpMode = false;
@@ -695,8 +718,9 @@ public class MovimientoController {
     }
 
     /**
-     * Divide un texto en dos partes aproximadamente iguales, buscando el último espacio antes de la mitad.
-     * 
+     * Divide un texto en dos partes aproximadamente iguales, buscando el último
+     * espacio antes de la mitad.
+     *
      * @param text el texto a dividir.
      * @return un arreglo con las dos partes del texto.
      */
@@ -718,9 +742,9 @@ public class MovimientoController {
     private class MesLabelListener extends MouseAdapter {
 
         /**
-         * Acción asociada al clic en el filtro de Mes.
-         * Establece el filtro a "Mes" y actualiza los datos en la vista.
-         * 
+         * Acción asociada al clic en el filtro de Mes. Establece el filtro a
+         * "Mes" y actualiza los datos en la vista.
+         *
          * @param e el evento de clic.
          */
         @Override
@@ -736,9 +760,9 @@ public class MovimientoController {
     private class AñoLabelListener extends MouseAdapter {
 
         /**
-         * Acción asociada al clic en el filtro de Año.
-         * Establece el filtro a "Año" y actualiza los datos en la vista.
-         * 
+         * Acción asociada al clic en el filtro de Año. Establece el filtro a
+         * "Año" y actualiza los datos en la vista.
+         *
          * @param e el evento de clic.
          */
         @Override
@@ -754,9 +778,9 @@ public class MovimientoController {
     private class TotalLabelListener extends MouseAdapter {
 
         /**
-         * Acción asociada al clic en el filtro Total.
-         * Establece el filtro a "Total" y actualiza los datos en la vista.
-         * 
+         * Acción asociada al clic en el filtro Total. Establece el filtro a
+         * "Total" y actualiza los datos en la vista.
+         *
          * @param e el evento de clic.
          */
         @Override
