@@ -1233,7 +1233,7 @@ public class MovimientoView extends JFrame implements BalanceObserver {
 
             // 🔹 Ajustar la altura dinámicamente
             int tableHeight = table.getRowCount() * table.getRowHeight();
-            scrollPane2.setPreferredSize(new Dimension(500, Math.min(300, tableHeight))); // Máximo 300px de alto
+            scrollPane2.setPreferredSize(new Dimension(500, Math.min(this.getHeight(), tableHeight))); // Máximo 300px de alto
 
             // 🔹 Permitir scroll vertical si hay demasiados elementos
             scrollPane2.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER); // Desactiva scroll horizontal
