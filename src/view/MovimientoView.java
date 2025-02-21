@@ -370,8 +370,18 @@ public class MovimientoView extends JFrame implements BalanceObserver {
 
         rightButtonPanel.add(addButton);
 
+// Crear la etiqueta de licencia alineada completamente abajo
+        JLabel licenseLabel = new JLabel("DAMWallet by DAM is licensed under CC BY-NC-ND 4.0", SwingConstants.CENTER);
+        licenseLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        licenseLabel.setForeground(Color.decode("#183cac")); // Color azul
+
+// Panel para asegurar que la etiqueta quede alineada abajo
+        JPanel bottomTextPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        bottomTextPanel.add(licenseLabel);
+
         buttonPanel.add(leftButtonPanel, BorderLayout.WEST);
         buttonPanel.add(rightButtonPanel, BorderLayout.EAST);
+        buttonPanel.add(bottomTextPanel, BorderLayout.SOUTH);
 
         add(buttonPanel, BorderLayout.SOUTH);
 
