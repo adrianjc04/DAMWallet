@@ -23,5 +23,5 @@
 /config/
 
 #Ignorar csv y pdf
-*.pdf
+prueba*.pdf
 *.csv
