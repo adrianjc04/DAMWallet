@@ -246,8 +246,27 @@ public class MovimientoView extends JFrame implements BalanceObserver {
 
         menuVer.add(mItemAlwaysOnTop);
 
+        JMenu menuAyuda = new JMenu("Ayuda");
+        JMenuItem jMenuItemManual = new JMenuItem("Manual");
+        jMenuItemManual.addActionListener((e) -> {
+            String manualPath = "ayuda" + File.separator + "ManualDeUsuario_DamWallet.pdf";
+            File manualFile = new File(manualPath);
+
+            if (manualFile.exists()) {
+                try {
+                    Desktop.getDesktop().browse(manualFile.toURI());
+                } catch (IOException ex) {
+                    ex.printStackTrace(); // Manejo de errores
+                }
+            } else {
+                System.err.println("El archivo de ayuda no se encuentra: " + manualPath);
+            }
+        });
+        menuAyuda.add(jMenuItemManual);
+
         menuBar.add(menuArchivo);
         menuBar.add(menuVer);
+        menuBar.add(menuAyuda);
 
         this.setJMenuBar(menuBar);
 
