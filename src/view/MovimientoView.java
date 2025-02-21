@@ -12,6 +12,7 @@ import controller.MovimientoController;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import javax.swing.event.HyperlinkEvent;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -263,7 +264,7 @@ public class MovimientoView extends JFrame implements BalanceObserver {
             }
         });
         menuAyuda.add(jMenuItemManual);
-        
+
         JMenuItem jMenuItemJavaDoc = new JMenuItem("JavaDoc (técnico)");
         jMenuItemJavaDoc.addActionListener((e) -> {
             String manualPath = "ayuda" + File.separator + "javadoc" + File.separator + "index.html";
@@ -405,19 +406,43 @@ public class MovimientoView extends JFrame implements BalanceObserver {
         addButton.setToolTipText("Nuevo Movimiento (ctrl + n)");
 
         rightButtonPanel.add(addButton);
+// Crear un JEditorPane para mostrar HTML con enlaces funcionales
+        JEditorPane licensePane = new JEditorPane();
+        licensePane.setContentType("text/html");
+        licensePane.setText(
+                "<html><body style='text-align:center; font-family:Arial; font-size:8px; color:black;'>"
+                + "<p xmlns:cc='http://creativecommons.org/ns#' xmlns:dct='http://purl.org/dc/terms/'>"
+                + "<a style='color:#183cac; text-decoration:underline;' href='https://github.com/adrianjc04/DAMWallet'>DAMWallet</a> by "
+                + "<span style='color:black;'>Adrián Jiménez Carrión, Jesús María Rey Senín, Daniel Bejarano Rodriguez</span> "
+                + "is licensed under "
+                + "<a href='https://creativecommons.org/licenses/by-nc-nd/4.0/?ref=chooser-v1' target='_blank' style='color:#183cac; text-decoration:underline;'>"
+                + "CC BY-NC-ND 4.0</a>"
+                + "<br>"
+                + "</p></body></html>"
+        );
+        licensePane.setEditable(false);
+        licensePane.setOpaque(false); // Fondo transparente
 
-// Crear la etiqueta de licencia alineada completamente abajo
-        JLabel licenseLabel = new JLabel("DAMWallet by DAM is licensed under CC BY-NC-ND 4.0", SwingConstants.CENTER);
-        licenseLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        licenseLabel.setForeground(Color.decode("#183cac")); // Color azul
+// Habilitar la navegación de enlaces
+        licensePane.addHyperlinkListener(e -> {
+            if (HyperlinkEvent.EventType.ACTIVATED.equals(e.getEventType())) {
+                try {
+                    Desktop.getDesktop().browse(e.getURL().toURI());
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
 
-// Panel para asegurar que la etiqueta quede alineada abajo
+// Crear panel inferior y añadir el JEditorPane
         JPanel bottomTextPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        bottomTextPanel.add(licenseLabel);
+        bottomTextPanel.setOpaque(false);
+        bottomTextPanel.add(licensePane);
+
+        buttonPanel.add(bottomTextPanel, BorderLayout.SOUTH); // Alinear abajo
 
         buttonPanel.add(leftButtonPanel, BorderLayout.WEST);
         buttonPanel.add(rightButtonPanel, BorderLayout.EAST);
-        buttonPanel.add(bottomTextPanel, BorderLayout.SOUTH);
 
         add(buttonPanel, BorderLayout.SOUTH);
 
