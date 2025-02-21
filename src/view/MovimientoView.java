@@ -263,6 +263,23 @@ public class MovimientoView extends JFrame implements BalanceObserver {
             }
         });
         menuAyuda.add(jMenuItemManual);
+        
+        JMenuItem jMenuItemJavaDoc = new JMenuItem("JavaDoc (técnico)");
+        jMenuItemJavaDoc.addActionListener((e) -> {
+            String manualPath = "ayuda" + File.separator + "javadoc" + File.separator + "index.html";
+            File manualFile = new File(manualPath);
+
+            if (manualFile.exists()) {
+                try {
+                    Desktop.getDesktop().browse(manualFile.toURI());
+                } catch (IOException ex) {
+                    ex.printStackTrace(); // Manejo de errores
+                }
+            } else {
+                System.err.println("El archivo de ayuda no se encuentra: " + manualPath);
+            }
+        });
+        menuAyuda.add(jMenuItemJavaDoc);
 
         menuBar.add(menuArchivo);
         menuBar.add(menuVer);
