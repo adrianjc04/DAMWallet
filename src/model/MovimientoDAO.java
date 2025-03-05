@@ -52,6 +52,7 @@ public abstract class MovimientoDAO {
         try (Connection conexion = DriverManager.getConnection(url)) {
             creado = true;
         } catch (SQLException e) {
+            e.printStackTrace();
             creado = false;
             System.out.println("MovimientoDAO: Error al crear la base de datos");
         }
@@ -68,6 +69,7 @@ public abstract class MovimientoDAO {
         try (Connection conexion = DriverManager.getConnection(url); Statement crearTabla = conexion.createStatement()) {
             crearTabla.execute(CREATETABLE);
         } catch (SQLException e) {
+            e.printStackTrace();
             System.out.println("MovimientoDAO: Error al crear la tabla, o ya existe.");
         }
     }
