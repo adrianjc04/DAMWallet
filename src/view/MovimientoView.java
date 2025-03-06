@@ -392,7 +392,7 @@ public class MovimientoView extends JFrame implements BalanceObserver {
 
         JPanel rightButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
-        ImageIcon addIcon = new ImageIcon("imgs/icono_añadir.png");
+        ImageIcon addIcon = new ImageIcon("imgs/icono_aniadir.png");
         Image img = addIcon.getImage();
         Image scaledImg = img.getScaledInstance(54, 54, Image.SCALE_SMOOTH);
         addIcon = new ImageIcon(scaledImg);
